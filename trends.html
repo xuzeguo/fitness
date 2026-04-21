@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>训练趋势</title>
+  </head>
+  <body>
+    <main class="wrap">
+      <nav class="nav">
+        <a href="./index.html">← 返回首页</a>
+        <span class="nav-sep">·</span>
+        <a href="./goals.html">目标</a>
+      </nav>
+      <header class="header">
+        <h1>健身训练趋势</h1>
+        <div class="sub">
+          数据：<code>data.json</code>（<code>rows</code> + <code>bodyMetrics</code> + <code>bodyGoals</code> 目标区间）
+        </div>
+        <div class="sub">
+          横轴较密时：用各图<strong>底部滑块</strong>选取日期范围；在图内可用<strong>滚轮缩放</strong>、<strong>拖拽平移</strong>。
+        </div>
+        <div class="sub">
+          节奏：减脂是<strong>递减曲线</strong>（前期快、后期慢）。曲线变平不等于失败——结合<strong>腰围</strong>、<strong>力量</strong>与生活状态是否稳住；详见 <a href="./goals.html">目标</a> 中的阶段与实战指标。
+        </div>
+      </header>
+
+      <section class="controls">
+        <label>
+          动作
+          <select id="exerciseSelect"></select>
+        </label>
+        <label>
+          维度
+          <select id="metricSelect">
+            <option value="volume">总训练量（kg·次）</option>
+            <option value="weight">重量（kg，取当日最大）</option>
+          </select>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="showMissing" checked />
+          显示缺失日期提示
+        </label>
+        <button id="reloadBtn" type="button">重新加载数据</button>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <h2>单动作趋势</h2>
+          <div id="exerciseChart" class="chart"></div>
+          <div id="missingHint" class="hint"></div>
+        </div>
+        <div class="card">
+          <h2>综合评分趋势</h2>
+          <div id="scoreChart" class="chart"></div>
+          <div class="hint">
+            评分 = 0.50×力量总训练量(标准化) + 0.35×划船功率(标准化) + 0.15×训练时长(标准化)，再做 3 日移动平均。长期看：力量不明显掉 ≈ 营养与恢复尚可；缓升更佳。
+          </div>
+        </div>
+      </section>
+
+      <section class="section-body">
+        <div class="card">
+          <h2>体重与体脂趋势</h2>
+          <div id="bodyChart" class="chart"></div>
+          <div id="bodyHint" class="hint"></div>
+          <div id="bodyForecastNote" class="forecast-note" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div>编辑 <code>public/data.json</code> 后点击「重新加载数据」。</div>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script type="module" src="./src/trends.js"></script>
+  </body>
+</html>

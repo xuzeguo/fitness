@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>健身数据</title>
+    <link rel="stylesheet" href="./home.css" />
+  </head>
+  <body>
+    <main class="home">
+      <h1>健身数据</h1>
+      <p class="lead">本目录为<strong>零构建</strong>静态文件：无需 <code>npm install</code>。请在当前目录启动本地 HTTP（见下方），用浏览器访问。</p>
+      <ul class="tiles">
+        <li>
+          <a href="./trends.html">训练趋势图</a>
+          <span class="desc">力量动作、综合评分、体重体脂（ECharts）</span>
+        </li>
+        <li>
+          <a href="./report.html">健身减重报告</a>
+          <span class="desc">Markdown 渲染</span>
+        </li>
+        <li>
+          <a href="./log.html">训练记录原文</a>
+          <span class="desc">Markdown 渲染 training-log.md</span>
+        </li>
+        <li>
+          <a href="./goals.html">目标</a>
+          <span class="desc">体态与围度目标（goals.md）</span>
+        </li>
+      </ul>
+      <p class="hint">启动方式：<code>python3 -m http.server 8765</code> → 打开 <code>http://localhost:8765/</code></p>
+    </main>
+  </body>
+</html>
