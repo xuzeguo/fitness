@@ -96,8 +96,49 @@ python3 -m http.server 8765
 
 - 图表数据：`public/data.json`（含 `rows`、`bodyMetrics` 与可选 `bodyGoals`；趋势页「体重与体脂」图会按 `bodyGoals.weightKg.min` 与每周 −0.5kg 生成粉色 **目标体重预测** 虚线，体脂为紫色 **目标体脂预测** 虚线。图下「预测说明」选取区间时，若相邻不同日期段换算速降超过 **3.5 kg/周** 则跳过该段（折线仍全部显示）；正文不再给出按记录斜率换算的 kg/周 或外推到达日，仅保留参考节奏下的粗算）
 - 报告正文：`public/report.md`
-- 训练手账：`public/training-log.md` / `public/training-log.csv`
+- 训练手账：**只维护** `public/training-log.csv`，然后执行 `npm run rebuild:data` 自动生成/更新 `public/data.json` 与 `public/training-log.md`（并同步到 `standalone/`）
 - 目标正文：`public/goals.md`
+
+### 高效更新训练数据（推荐流程）
+
+1. **只编辑一个文件**：`public/training-log.csv`
+   - 在表头下一行插入一条新记录（保持**最新在上**）。
+   - `序号` 可随便填（脚本会按 CSV 当前顺序自动重排为 1,2,3…）。
+2. **一键生成并同步**：
+
+```bash
+npm run rebuild:data
+```
+
+该命令会从 `public/training-log.csv` 自动生成/覆盖：
+
+- `public/data.json`（更新 `rows`，保留 `bodyMetrics/bodyGoals`）
+- `public/training-log.md`
+- `standalone/` 下对应副本（等价于再执行一次 `npm run sync:standalone`）
+
+**输入格式建议**（便于趋势页解析）：
+
+- 力量：尽量写 `20kg×14×4`；多个项目用 `；` 分隔；未做写 `未做` 或 `–`
+- 划船机：尽量包含 `3000m 13:35.4 2:15.9/500m`（没有也可）
+
+### 手动更新体重/体脂（bodyMetrics）
+
+体重与体脂趋势图读取的是 `public/data.json` 里的 `bodyMetrics`（不是 CSV）。手动更新步骤：
+
+1. 编辑 `public/data.json` 的 `bodyMetrics` 数组，在顶部或合适位置新增一条：
+   - `日期`：`"MM-DD"`（例如 `"04-23"`；同一天多次测量可以写多条相同日期）
+   - `体重kg`：数字（例如 `88.0`）
+   - `体脂率`：数字（例如 `26.9`；没有可省略或写 `null`）
+2. 如需调整目标区间，编辑 `public/data.json` 的 `bodyGoals`（可选）：
+   - `weightKg.min/max`
+   - `bodyFatPercent.min/max`
+3. 同步到零构建副本：
+
+```bash
+npm run sync:standalone
+```
+
+说明：`npm run rebuild:data` **只会重建** `data.json.rows` 与 `training-log.md`，并**保留** `bodyMetrics/bodyGoals`，所以你可以放心先手改 `bodyMetrics`，再跑 `rebuild:data`。
 
 可与仓库根目录的 `健身训练记录表.md`、`健身减重报告.md` 手动同步，或使用脚本复制覆盖。
 

@@ -1,6 +1,108 @@
 import fs from "fs";
 
-const data = JSON.parse(fs.readFileSync("public/data.json", "utf8"));
+function parseCsvLine(line) {
+  // Minimal CSV parser supporting double quotes.
+  const out = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"') {
+        const next = line[i + 1];
+        if (next === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQ = false;
+        }
+      } else {
+        cur += ch;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inQ = true;
+      continue;
+    }
+    if (ch === ",") {
+      out.push(cur);
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function readTrainingCsv(path) {
+  const raw = fs.readFileSync(path, "utf8");
+  const lines = raw
+    .split(/\r?\n/)
+    .map((l) => l.trimEnd())
+    .filter((l) => l.trim().length > 0);
+  if (lines.length < 2) return { header: [], rows: [] };
+  const header = parseCsvLine(lines[0]).map((h) => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i]);
+    if (!cols.some((c) => String(c).trim() !== "")) continue;
+    const row = {};
+    for (let j = 0; j < header.length; j++) {
+      row[header[j]] = (cols[j] ?? "").trim();
+    }
+    rows.push(row);
+  }
+  return { header, rows };
+}
+
+function buildRowsForDataJson(csvRows) {
+  // Use CSV order as "latest first", and re-number 序号 starting from 1.
+  return csvRows.map((r, idx) => {
+    const out = { ...r };
+    out["序号"] = String(idx + 1);
+    return out;
+  });
+}
+
+const dataPath = "public/data.json";
+const csvPath = "public/training-log.csv";
+
+const existing = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+const { rows: csvRows } = readTrainingCsv(csvPath);
+const newRows = buildRowsForDataJson(csvRows);
+
+const data = {
+  ...existing,
+  source: "training-log.csv",
+  generatedFrom: "public/training-log.csv（手工维护，脚本生成 data.json 与 training-log.md）",
+  rows: newRows.map((r) => {
+    // Ensure we only keep the columns we expect; tolerate extra columns.
+    const keep = {};
+    for (const k of [
+      "日期",
+      "运动时长",
+      "坐立卷腹机",
+      "曲臂伸机",
+      "高位下拉机",
+      "腿屈伸机",
+      "臀桥/臀桥机",
+      "肩部推举",
+      "蝴蝶夹胸",
+      "胸飞鸟",
+      "髋外展/内收",
+      "俯身倒蹬",
+      "划船机(配速/距离/功率/时间/频率)",
+      "序号",
+    ]) {
+      if (r[k] != null) keep[k] = r[k];
+    }
+    return keep;
+  }),
+};
+
+fs.writeFileSync(dataPath, JSON.stringify(data, null, 2) + "\n");
 
 function fmtDur(s) {
   let t = String(s);
