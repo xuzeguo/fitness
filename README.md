@@ -97,7 +97,22 @@ python3 -m http.server 8765
 - 图表数据：`public/data.json`（含 `rows`、`bodyMetrics` 与可选 `bodyGoals`；趋势页「体重与体脂」图会按 `bodyGoals.weightKg.min` 与每周 −0.5kg 生成粉色 **目标体重预测** 虚线，体脂为紫色 **目标体脂预测** 虚线。图下「预测说明」选取区间时，若相邻不同日期段换算速降超过 **3.5 kg/周** 则跳过该段（折线仍全部显示）；正文不再给出按记录斜率换算的 kg/周 或外推到达日，仅保留参考节奏下的粗算）
 - 报告正文：`public/report.md`
 - 训练手账：**只维护** `public/training-log.csv`，然后执行 `npm run rebuild:data` 自动生成/更新 `public/data.json` 与 `public/training-log.md`（并同步到 `standalone/`）
+- 体重/体脂：推荐维护 `public/body-metrics.csv`（可选）；脚本会在重建时把它写回 `public/data.json.bodyMetrics`（若该 CSV 为空/仅表头，则继续保留 `data.json` 里原有 `bodyMetrics`，不会清空历史）
+- 进店记录：推荐维护 `public/gym-visits.csv`（可选）；脚本会在生成 `public/training-log.md` 时读取该 CSV（若该 CSV 为空/仅表头，则继续沿用脚本内置的历史数据）
+- 围度记录：推荐维护 `public/girth.csv`（可选）；脚本会在生成 `public/training-log.md` 时读取该 CSV（若该 CSV 为空/仅表头，则继续沿用脚本内置的历史数据）
 - 目标正文：`public/goals.md`
+
+### 初始化 / 一键导出历史数据到 CSV（推荐）
+
+如果你希望把脚本内置的「进店记录/围度」历史数据导出到 CSV，并把 `data.json.bodyMetrics` 也导出到 `body-metrics.csv`（避免手抄），执行：
+
+```bash
+npm run seed:csv
+```
+
+说明：
+- 该命令**只在 CSV 为空或只有表头时**写入数据；如果你已经手动维护了 CSV，不会覆盖。
+- 执行后会自动同步 `standalone/`。
 
 ### 高效更新训练数据（推荐流程）
 
@@ -121,9 +136,15 @@ npm run rebuild:data
 - 力量：尽量写 `20kg×14×4`；多个项目用 `；` 分隔；未做写 `未做` 或 `–`
 - 划船机：尽量包含 `3000m 13:35.4 2:15.9/500m`（没有也可）
 
-### 手动更新体重/体脂（bodyMetrics）
+### 更新体重/体脂（bodyMetrics）
 
-体重与体脂趋势图读取的是 `public/data.json` 里的 `bodyMetrics`（不是 CSV）。手动更新步骤：
+体重与体脂趋势图读取的是 `public/data.json` 里的 `bodyMetrics`。推荐更新方式如下（二选一）：
+
+**方式 A（推荐，单一数据源）**：只维护 `public/body-metrics.csv`，然后执行 `npm run rebuild:data`（会自动写回 `data.json.bodyMetrics` 并同步 `standalone/`）。
+
+**方式 B（兼容旧方式）**：继续手动改 `public/data.json.bodyMetrics`，然后执行 `npm run sync:standalone` 同步。
+
+方式 B 的手动更新步骤：
 
 1. 编辑 `public/data.json` 的 `bodyMetrics` 数组，在顶部或合适位置新增一条：
    - `日期`：`"MM-DD"`（例如 `"04-23"`；同一天多次测量可以写多条相同日期）
