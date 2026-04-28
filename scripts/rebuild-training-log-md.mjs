@@ -112,8 +112,29 @@ const gymVisitsCsvPath = "public/gym-visits.csv";
 const girthCsvPath = "public/girth.csv";
 
 const existing = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-const { rows: csvRows } = readTrainingCsv(csvPath);
+const { header: csvHeader, rows: csvRows } = readTrainingCsv(csvPath);
 const newRows = buildRowsForDataJson(csvRows);
+
+function csvEscapeCell(v) {
+  const s = v == null ? "" : String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function writeTrainingCsvNormalized({ path, header, rows }) {
+  const out = [];
+  out.push(header.join(","));
+  for (let i = 0; i < rows.length; i++) {
+    const r = { ...rows[i], 序号: String(i + 1) };
+    out.push(header.map((h) => csvEscapeCell(r[h] ?? "")).join(","));
+  }
+  fs.writeFileSync(path, out.join("\n") + "\n");
+}
+
+// Normalize CSV 序号 so it stays consistent (latest first).
+if (csvHeader && csvHeader.length > 0) {
+  writeTrainingCsvNormalized({ path: csvPath, header: csvHeader, rows: newRows });
+}
 
 function toNumOrNull(s) {
   if (s == null) return null;
@@ -157,14 +178,22 @@ const data = {
       "运动时长",
       "坐立卷腹机",
       "曲臂伸机",
+      "坐姿器械侧平举",
+      "卧推",
       "高位下拉机",
       "腿屈伸机",
       "臀桥/臀桥机",
       "肩部推举",
       "蝴蝶夹胸",
       "胸飞鸟",
+      "反向飞鸟",
+      "坐姿划船",
+      "硬拉",
+      "背靠哈克深蹲",
+      "正面哈克深蹲",
       "髋外展/内收",
       "俯身倒蹬",
+      "动物流",
       "划船机(配速/距离/功率/时间/频率)",
       "序号",
     ]) {
@@ -176,6 +205,8 @@ const data = {
 };
 
 fs.writeFileSync(dataPath, JSON.stringify(data, null, 2) + "\n");
+fs.mkdirSync("standalone", { recursive: true });
+fs.writeFileSync("standalone/data.json", JSON.stringify(data, null, 2) + "\n");
 
 function fmtDur(s) {
   let t = String(s);
@@ -191,22 +222,32 @@ function fmtBf(bf) {
   return (n % 1 === 0 ? n.toFixed(1) : String(n)) + "%";
 }
 
-const sep =
-  "|------|--------|-----------|------------|-----------|-------------|-----------|--------------|-----------|-----------|--------|--------------|------------|-------------------------------------------|";
+function mdSep(cols) {
+  return "| " + cols.map(() => "------").join(" | ") + " |";
+}
+
 const keys = [
   "序号",
   "日期",
   "运动时长",
   "坐立卷腹机",
   "曲臂伸机",
+  "坐姿器械侧平举",
+  "卧推",
   "高位下拉机",
   "腿屈伸机",
   "臀桥/臀桥机",
   "肩部推举",
   "蝴蝶夹胸",
   "胸飞鸟",
+  "反向飞鸟",
+  "坐姿划船",
+  "硬拉",
+  "背靠哈克深蹲",
+  "正面哈克深蹲",
   "髋外展/内收",
   "俯身倒蹬",
+  "动物流",
   "划船机（配速 / 距离 / 功率 / 时间 / 频率）",
 ];
 const rowKeys = [
@@ -215,14 +256,22 @@ const rowKeys = [
   "运动时长",
   "坐立卷腹机",
   "曲臂伸机",
+  "坐姿器械侧平举",
+  "卧推",
   "高位下拉机",
   "腿屈伸机",
   "臀桥/臀桥机",
   "肩部推举",
   "蝴蝶夹胸",
   "胸飞鸟",
+  "反向飞鸟",
+  "坐姿划船",
+  "硬拉",
+  "背靠哈克深蹲",
+  "正面哈克深蹲",
   "髋外展/内收",
   "俯身倒蹬",
+  "动物流",
   "划船机(配速/距离/功率/时间/频率)",
 ];
 
@@ -230,7 +279,7 @@ const out = [];
 out.push("## 健身训练记录表（汇总）");
 out.push("");
 out.push("| " + keys.join(" | ") + " |");
-out.push(sep);
+out.push(mdSep(keys));
 for (const row of data.rows) {
   const cells = rowKeys.map((k) => {
     let v = row[k] ?? "";
@@ -379,3 +428,11 @@ out.push("");
 out.push("");
 
 fs.writeFileSync("public/training-log.md", out.join("\n"));
+fs.writeFileSync("standalone/training-log.md", out.join("\n"));
+
+// Keep standalone CSV in sync (public is the source of truth).
+try {
+  fs.copyFileSync(csvPath, "standalone/training-log.csv");
+} catch {
+  // ignore
+}
