@@ -8,6 +8,7 @@ const appState = {
   bodyPoints: [],
   bodyGoals: null,
   config: null,
+  customWeights: null, // 用户自定义的权重
 };
 
 let charts;
@@ -782,8 +783,8 @@ function renderScoreChart(chart, data) {
   const zWatts = standardize(watts);
   const zMins = standardize(mins);
 
-  // 从配置文件读取权重，如果没有配置则使用默认值
-  const weights = appState.config?.scoreWeights || {
+  // 使用自定义权重或配置文件权重
+  const weights = appState.customWeights || appState.config?.scoreWeights || {
     strength: 0.5,
     cardio: 0.35,
     duration: 0.15,
@@ -887,9 +888,92 @@ function init() {
   const showMissing = document.getElementById("showMissing");
   const reloadBtn = document.getElementById("reloadBtn");
 
+  // 权重控制
+  const strengthWeight = document.getElementById("strengthWeight");
+  const cardioWeight = document.getElementById("cardioWeight");
+  const durationWeight = document.getElementById("durationWeight");
+  const strengthWeightValue = document.getElementById("strengthWeightValue");
+  const cardioWeightValue = document.getElementById("cardioWeightValue");
+  const durationWeightValue = document.getElementById("durationWeightValue");
+  const resetWeightsBtn = document.getElementById("resetWeightsBtn");
+
+  // 从 localStorage 加载自定义权重
+  const savedWeights = localStorage.getItem("scoreWeights");
+  if (savedWeights) {
+    try {
+      appState.customWeights = JSON.parse(savedWeights);
+      strengthWeight.value = Math.round(appState.customWeights.strength * 100);
+      cardioWeight.value = Math.round(appState.customWeights.cardio * 100);
+      durationWeight.value = Math.round(appState.customWeights.duration * 100);
+    } catch (e) {
+      console.warn("无法加载保存的权重:", e);
+    }
+  }
+
+  // 更新权重显示
+  function updateWeightDisplay() {
+    const s = parseInt(strengthWeight.value) / 100;
+    const c = parseInt(cardioWeight.value) / 100;
+    const d = parseInt(durationWeight.value) / 100;
+    strengthWeightValue.textContent = s.toFixed(2);
+    cardioWeightValue.textContent = c.toFixed(2);
+    durationWeightValue.textContent = d.toFixed(2);
+  }
+
+  // 权重变化时更新
+  function handleWeightChange() {
+    const s = parseInt(strengthWeight.value) / 100;
+    const c = parseInt(cardioWeight.value) / 100;
+    const d = parseInt(durationWeight.value) / 100;
+
+    appState.customWeights = {
+      strength: s,
+      cardio: c,
+      duration: d,
+    };
+
+    // 保存到 localStorage
+    localStorage.setItem("scoreWeights", JSON.stringify(appState.customWeights));
+
+    updateWeightDisplay();
+
+    // 重新渲染评分图表
+    if (appState.data) {
+      renderScoreChart(charts.scoreChart, appState.data);
+    }
+  }
+
+  // 重置权重
+  function resetWeights() {
+    const defaultWeights = appState.config?.scoreWeights || {
+      strength: 0.5,
+      cardio: 0.35,
+      duration: 0.15,
+    };
+
+    strengthWeight.value = Math.round(defaultWeights.strength * 100);
+    cardioWeight.value = Math.round(defaultWeights.cardio * 100);
+    durationWeight.value = Math.round(defaultWeights.duration * 100);
+
+    appState.customWeights = null;
+    localStorage.removeItem("scoreWeights");
+
+    updateWeightDisplay();
+
+    if (appState.data) {
+      renderScoreChart(charts.scoreChart, appState.data);
+    }
+  }
+
+  updateWeightDisplay();
+
   exerciseSelect.addEventListener("change", rerenderAll);
   metricSelect.addEventListener("change", rerenderAll);
   showMissing.addEventListener("change", rerenderAll);
+  strengthWeight.addEventListener("input", handleWeightChange);
+  cardioWeight.addEventListener("input", handleWeightChange);
+  durationWeight.addEventListener("input", handleWeightChange);
+  resetWeightsBtn.addEventListener("click", resetWeights);
   reloadBtn.addEventListener("click", async () => {
     reloadBtn.disabled = true;
     try {

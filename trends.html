@@ -52,9 +52,24 @@
         </div>
         <div class="card">
           <h2>综合评分趋势</h2>
+          <div class="weight-controls">
+            <div class="weight-item">
+              <label>力量权重: <span id="strengthWeightValue">0.50</span></label>
+              <input type="range" id="strengthWeight" min="0" max="100" value="50" step="5">
+            </div>
+            <div class="weight-item">
+              <label>有氧权重: <span id="cardioWeightValue">0.35</span></label>
+              <input type="range" id="cardioWeight" min="0" max="100" value="35" step="5">
+            </div>
+            <div class="weight-item">
+              <label>时长权重: <span id="durationWeightValue">0.15</span></label>
+              <input type="range" id="durationWeight" min="0" max="100" value="15" step="5">
+            </div>
+            <button id="resetWeightsBtn" type="button" class="btn-small">重置为默认</button>
+          </div>
           <div id="scoreChart" class="chart"></div>
           <div class="hint">
-            评分 = 0.50×力量总训练量(标准化) + 0.35×划船功率(标准化) + 0.15×训练时长(标准化)，再做 3 日移动平均。长期看：力量不明显掉 ≈ 营养与恢复尚可；缓升更佳。
+            评分 = 力量权重×力量总训练量(标准化) + 有氧权重×划船功率(标准化) + 时长权重×训练时长(标准化)，再做 3 日移动平均。长期看：力量不明显掉 ≈ 营养与恢复尚可；缓升更佳。
           </div>
         </div>
       </section>
