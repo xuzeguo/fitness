@@ -7,10 +7,13 @@ const DATA_PATH = `${import.meta.env.BASE_URL}data.json`;
 const CONFIG_PATH = `${import.meta.env.BASE_URL}config.json`;
 const API_KEY_STORAGE_KEY = "claude_api_key";
 const BASE_URL_STORAGE_KEY = "claude_base_url";
+const API_PATH_STORAGE_KEY = "claude_api_path";
 const DEFAULT_BASE_URL = "https://api.anthropic.com";
+const DEFAULT_API_PATH = "/v1/messages";
 
 let apiKey = null;
 let baseUrl = null;
+let apiPath = null;
 let conversationHistory = [];
 let userData = null;
 let config = null;
@@ -19,18 +22,41 @@ let config = null;
  * 初始化
  */
 async function init() {
-  // 加载 API Key 和 Base URL
+  // 加载 API Key、Base URL 和 API Path
   apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
   baseUrl = localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL;
+  apiPath = localStorage.getItem(API_PATH_STORAGE_KEY) || DEFAULT_API_PATH;
 
   if (apiKey) {
     document.getElementById("apiKeyBanner").classList.add("hidden");
   } else {
-    // 如果有保存的 base URL，显示在输入框中
+    // 如果有保存的配置，显示在输入框中
     if (baseUrl !== DEFAULT_BASE_URL) {
       document.getElementById("baseUrlInput").value = baseUrl;
     }
+    if (apiPath !== DEFAULT_API_PATH) {
+      const pathSelect = document.getElementById("apiPathSelect");
+      if (apiPath === "/v1") {
+        pathSelect.value = "/v1";
+      } else if (apiPath === "/v1/messages") {
+        pathSelect.value = "/v1/messages";
+      } else {
+        pathSelect.value = "custom";
+        document.getElementById("customPathInput").style.display = "inline-block";
+        document.getElementById("customPathInput").value = apiPath;
+      }
+    }
   }
+
+  // API 路径选择器事件
+  document.getElementById("apiPathSelect").addEventListener("change", (e) => {
+    const customInput = document.getElementById("customPathInput");
+    if (e.target.value === "custom") {
+      customInput.style.display = "inline-block";
+    } else {
+      customInput.style.display = "none";
+    }
+  });
 
   // 加载用户数据
   try {
@@ -69,11 +95,14 @@ async function init() {
 }
 
 /**
- * 保存 API Key 和 Base URL
+ * 保存 API Key、Base URL 和 API Path
  */
 function saveApiKey() {
   const keyInput = document.getElementById("apiKeyInput");
   const urlInput = document.getElementById("baseUrlInput");
+  const pathSelect = document.getElementById("apiPathSelect");
+  const customPathInput = document.getElementById("customPathInput");
+
   const key = keyInput.value.trim();
   const url = urlInput.value.trim();
 
@@ -86,9 +115,8 @@ function saveApiKey() {
   apiKey = key;
   localStorage.setItem(API_KEY_STORAGE_KEY, key);
 
-  // 保存 Base URL（如果提供了）
+  // 保存 Base URL
   if (url) {
-    // 移除末尾的斜杠
     baseUrl = url.replace(/\/$/, "");
     localStorage.setItem(BASE_URL_STORAGE_KEY, baseUrl);
   } else {
@@ -96,10 +124,21 @@ function saveApiKey() {
     localStorage.removeItem(BASE_URL_STORAGE_KEY);
   }
 
+  // 保存 API Path
+  if (pathSelect.value === "custom") {
+    apiPath = customPathInput.value.trim();
+    if (!apiPath.startsWith("/")) {
+      apiPath = "/" + apiPath;
+    }
+  } else {
+    apiPath = pathSelect.value;
+  }
+  localStorage.setItem(API_PATH_STORAGE_KEY, apiPath);
+
   document.getElementById("apiKeyBanner").classList.add("hidden");
 
-  const urlInfo = baseUrl !== DEFAULT_BASE_URL ? `\n使用自定义 Base URL: ${baseUrl}` : "";
-  addMessage("assistant", `✅ API 配置已保存！${urlInfo}\n\n现在你可以开始使用 AI 助手了。`);
+  const configInfo = `Base URL: ${baseUrl}\nAPI Path: ${apiPath}`;
+  addMessage("assistant", `✅ API 配置已保存！\n\n${configInfo}\n\n现在你可以开始使用 AI 助手了。`);
 }
 
 /**
@@ -173,10 +212,12 @@ async function callClaudeAPI(userMessage) {
   });
 
   // 构建 API endpoint
-  const apiEndpoint = `${baseUrl}/v1/messages`;
+  const apiEndpoint = `${baseUrl}${apiPath}`;
 
   console.log("🔍 调试信息:");
-  console.log("API Endpoint:", apiEndpoint);
+  console.log("Base URL:", baseUrl);
+  console.log("API Path:", apiPath);
+  console.log("完整 Endpoint:", apiEndpoint);
   console.log("API Key 前缀:", apiKey?.substring(0, 10) + "...");
 
   try {

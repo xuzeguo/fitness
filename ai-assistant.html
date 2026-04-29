@@ -302,11 +302,17 @@
   <div class="api-key-banner" id="apiKeyBanner">
     <div>
       <strong>需要 Claude API 配置</strong> -
-      <span>请输入 API Key 和 Base URL（使用中转站时需要）</span>
+      <span>请配置 API 信息（使用中转站时需要自定义 Base URL 和路径）</span>
     </div>
     <div class="api-key-input">
-      <input type="text" id="baseUrlInput" placeholder="Base URL（可选，如 https://api.example.com）" style="width: 280px;">
-      <input type="password" id="apiKeyInput" placeholder="API Key" style="width: 280px;">
+      <input type="text" id="baseUrlInput" placeholder="Base URL（如 https://api.example.com）" style="width: 240px;">
+      <select id="apiPathSelect" style="width: 140px; padding: 6px;">
+        <option value="/v1/messages">官方 (/v1/messages)</option>
+        <option value="/v1" selected>中转站 (/v1)</option>
+        <option value="custom">自定义路径</option>
+      </select>
+      <input type="text" id="customPathInput" placeholder="自定义路径" style="width: 120px; display: none;">
+      <input type="password" id="apiKeyInput" placeholder="API Key" style="width: 240px;">
       <button class="btn btn-primary" id="saveApiKeyBtn">保存</button>
     </div>
   </div>
