@@ -175,45 +175,74 @@ async function callClaudeAPI(userMessage) {
   // 构建 API endpoint
   const apiEndpoint = `${baseUrl}/v1/messages`;
 
-  const response = await fetch(apiEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: conversationHistory,
-    }),
-  });
+  console.log("🔍 调试信息:");
+  console.log("API Endpoint:", apiEndpoint);
+  console.log("API Key 前缀:", apiKey?.substring(0, 10) + "...");
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorMessage = "API 调用失败";
+  try {
+    const response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: conversationHistory,
+      }),
+    });
 
-    try {
-      const error = JSON.parse(errorText);
-      errorMessage = error.error?.message || errorMessage;
-    } catch {
-      errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
+    console.log("✅ 请求成功，状态码:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ API 返回错误:", errorText);
+
+      let errorMessage = "API 调用失败";
+
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.error?.message || errorMessage;
+      } catch {
+        errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
+      }
+
+      throw new Error(errorMessage);
     }
 
-    throw new Error(errorMessage);
+    const data = await response.json();
+    const assistantMessage = data.content[0].text;
+
+    // 添加到对话历史
+    conversationHistory.push({
+      role: "assistant",
+      content: assistantMessage,
+    });
+
+    return assistantMessage;
+  } catch (error) {
+    console.error("❌ 请求失败:", error);
+
+    // 详细的错误信息
+    if (error.message === "Failed to fetch") {
+      throw new Error(
+        `网络请求失败，可能的原因：\n\n` +
+        `1. Base URL 配置错误\n` +
+        `   当前配置: ${baseUrl}\n` +
+        `   请检查中转站地址是否正确\n\n` +
+        `2. CORS 跨域问题\n` +
+        `   中转站可能未配置 CORS 允许\n\n` +
+        `3. 网络连接问题\n` +
+        `   请检查网络连接是否正常\n\n` +
+        `💡 建议：打开浏览器开发者工具（F12）查看 Network 标签页的详细错误信息`
+      );
+    }
+
+    throw error;
   }
-
-  const data = await response.json();
-  const assistantMessage = data.content[0].text;
-
-  // 添加到对话历史
-  conversationHistory.push({
-    role: "assistant",
-    content: assistantMessage,
-  });
-
-  return assistantMessage;
 }
 
 /**
