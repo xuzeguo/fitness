@@ -15,6 +15,7 @@ export default defineConfig({
         report: resolve(__dirname, "report.html"),
         log: resolve(__dirname, "log.html"),
         goals: resolve(__dirname, "goals.html"),
+        entry: resolve(__dirname, "entry.html"),
       },
     },
   },
