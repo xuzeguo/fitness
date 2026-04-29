@@ -1,11 +1,13 @@
 import "./styles/trends.css";
 
 const DATA_JSON_PATH = `${import.meta.env.BASE_URL}data.json`;
+const CONFIG_JSON_PATH = `${import.meta.env.BASE_URL}config.json`;
 
 const appState = {
   data: null,
   bodyPoints: [],
   bodyGoals: null,
+  config: null,
 };
 
 let charts;
@@ -780,7 +782,18 @@ function renderScoreChart(chart, data) {
   const zWatts = standardize(watts);
   const zMins = standardize(mins);
 
-  const rawScore = data.items.map((_, i) => 0.5 * zStrength[i] + 0.35 * zWatts[i] + 0.15 * zMins[i]);
+  // 从配置文件读取权重，如果没有配置则使用默认值
+  const weights = appState.config?.scoreWeights || {
+    strength: 0.5,
+    cardio: 0.35,
+    duration: 0.15,
+  };
+
+  const rawScore = data.items.map((_, i) =>
+    weights.strength * zStrength[i] +
+    weights.cardio * zWatts[i] +
+    weights.duration * zMins[i]
+  );
   const smooth = movingAverage(rawScore, 3);
 
   chart.setOption({
@@ -844,6 +857,17 @@ function rerenderAll() {
 
 async function loadData() {
   assertEchartsLoaded();
+
+  // 加载配置文件
+  try {
+    const configRes = await fetch(CONFIG_JSON_PATH, { cache: "no-store" });
+    if (configRes.ok) {
+      appState.config = await configRes.json();
+    }
+  } catch (error) {
+    console.warn("无法加载配置文件，将使用默认配置:", error);
+  }
+
   const res = await fetch(DATA_JSON_PATH, { cache: "no-store" });
   if (!res.ok) throw new Error(`读取 data.json 失败：${res.status}`);
   const json = await res.json();

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sync:standalone": "cp -f public/data.json public/report.md public/training-log.md public/training-log.csv public/goals.md standalone/ && (test -f public/body-metrics.csv && cp -f public/body-metrics.csv standalone/ || true) && (test -f public/gym-visits.csv && cp -f public/gym-visits.csv standalone/ || true) && (test -f public/girth.csv && cp -f public/girth.csv standalone/ || true) && cp -f src/styles/trends.css standalone/trends.css",
+    "sync:standalone": "cp -f public/data.json public/report.md public/training-log.md public/training-log.csv public/goals.md public/config.json standalone/ && (test -f public/body-metrics.csv && cp -f public/body-metrics.csv standalone/ || true) && (test -f public/gym-visits.csv && cp -f public/gym-visits.csv standalone/ || true) && (test -f public/girth.csv && cp -f public/girth.csv standalone/ || true) && cp -f src/styles/trends.css standalone/trends.css",
     "seed:csv": "node scripts/seed-csvs.mjs && npm run sync:standalone",
     "rebuild:data": "node scripts/rebuild-training-log-md.mjs && npm run sync:standalone"
   },

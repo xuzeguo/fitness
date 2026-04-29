@@ -1,4 +1,11 @@
 import fs from "fs";
+import {
+  validateDate,
+  validateWeight,
+  validateBodyFat,
+  validateTrainingLogRow,
+  validateBodyMetricsRow,
+} from "./lib/data-validator.mjs";
 
 function parseCsvLine(line) {
   // Minimal CSV parser supporting double quotes.
@@ -113,6 +120,25 @@ const girthCsvPath = "public/girth.csv";
 
 const existing = JSON.parse(fs.readFileSync(dataPath, "utf8"));
 const { header: csvHeader, rows: csvRows } = readTrainingCsv(csvPath);
+
+// 校验训练日志数据
+console.log("正在校验训练日志数据...");
+const trainingErrors = [];
+csvRows.forEach((row, idx) => {
+  const result = validateTrainingLogRow(row, idx + 2); // +2 因为第1行是表头
+  if (!result.valid) {
+    trainingErrors.push(...result.errors);
+  }
+});
+
+if (trainingErrors.length > 0) {
+  console.error("\n❌ 训练日志数据校验失败：");
+  trainingErrors.forEach((err) => console.error(`  - ${err}`));
+  console.error("\n请修正以上错误后重试。\n");
+  process.exit(1);
+}
+console.log("✓ 训练日志数据校验通过");
+
 const newRows = buildRowsForDataJson(csvRows);
 
 function csvEscapeCell(v) {
@@ -162,6 +188,27 @@ function buildBodyMetricsFromCsvRows(csvRows) {
 }
 
 const bmCsv = readCsvIfExists(bodyMetricsCsvPath);
+
+// 校验体重体脂数据
+if (bmCsv && bmCsv.rows && bmCsv.rows.length > 0) {
+  console.log("正在校验体重体脂数据...");
+  const bodyMetricsErrors = [];
+  bmCsv.rows.forEach((row, idx) => {
+    const result = validateBodyMetricsRow(row, idx + 2); // +2 因为第1行是表头
+    if (!result.valid) {
+      bodyMetricsErrors.push(...result.errors);
+    }
+  });
+
+  if (bodyMetricsErrors.length > 0) {
+    console.error("\n❌ 体重体脂数据校验失败：");
+    bodyMetricsErrors.forEach((err) => console.error(`  - ${err}`));
+    console.error("\n请修正以上错误后重试。\n");
+    process.exit(1);
+  }
+  console.log("✓ 体重体脂数据校验通过");
+}
+
 const bmFromCsv = bmCsv ? buildBodyMetricsFromCsvRows(bmCsv.rows) : null;
 const nextBodyMetrics =
   bmFromCsv && bmFromCsv.length > 0 ? bmFromCsv : existing.bodyMetrics ?? [];

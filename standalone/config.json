@@ -1,0 +1,176 @@
+{
+  "exercises": [
+    {
+      "name": "坐立卷腹机",
+      "category": "核心",
+      "unit": "kg",
+      "enabled": true,
+      "order": 1
+    },
+    {
+      "name": "曲臂伸机",
+      "category": "手臂",
+      "unit": "kg",
+      "enabled": true,
+      "order": 2
+    },
+    {
+      "name": "坐姿器械侧平举",
+      "category": "肩",
+      "unit": "kg",
+      "enabled": true,
+      "order": 3
+    },
+    {
+      "name": "卧推",
+      "category": "胸",
+      "unit": "kg",
+      "enabled": true,
+      "order": 4
+    },
+    {
+      "name": "高位下拉机",
+      "category": "背",
+      "unit": "kg",
+      "enabled": true,
+      "order": 5
+    },
+    {
+      "name": "腿屈伸机",
+      "category": "腿",
+      "unit": "kg",
+      "enabled": true,
+      "order": 6
+    },
+    {
+      "name": "臀桥/臀桥机",
+      "category": "臀",
+      "unit": "kg",
+      "enabled": true,
+      "order": 7
+    },
+    {
+      "name": "肩部推举",
+      "category": "肩",
+      "unit": "kg",
+      "enabled": true,
+      "order": 8
+    },
+    {
+      "name": "蝴蝶夹胸",
+      "category": "胸",
+      "unit": "kg",
+      "enabled": true,
+      "order": 9
+    },
+    {
+      "name": "胸飞鸟",
+      "category": "胸",
+      "unit": "kg",
+      "enabled": true,
+      "order": 10
+    },
+    {
+      "name": "反向飞鸟",
+      "category": "背",
+      "unit": "kg",
+      "enabled": true,
+      "order": 11
+    },
+    {
+      "name": "坐姿划船",
+      "category": "背",
+      "unit": "kg",
+      "enabled": true,
+      "order": 12
+    },
+    {
+      "name": "硬拉",
+      "category": "背",
+      "unit": "kg",
+      "enabled": true,
+      "order": 13
+    },
+    {
+      "name": "背靠哈克深蹲",
+      "category": "腿",
+      "unit": "kg",
+      "enabled": true,
+      "order": 14
+    },
+    {
+      "name": "正面哈克深蹲",
+      "category": "腿",
+      "unit": "kg",
+      "enabled": true,
+      "order": 15
+    },
+    {
+      "name": "髋外展/内收",
+      "category": "腿",
+      "unit": "kg",
+      "enabled": true,
+      "order": 16
+    },
+    {
+      "name": "俯身倒蹬",
+      "category": "腿",
+      "unit": "kg",
+      "enabled": true,
+      "order": 17
+    },
+    {
+      "name": "动物流",
+      "category": "功能性训练",
+      "unit": "组",
+      "enabled": true,
+      "order": 18
+    },
+    {
+      "name": "划船机(配速/距离/功率/时间/频率)",
+      "category": "有氧",
+      "unit": "m",
+      "enabled": true,
+      "order": 19
+    }
+  ],
+  "scoreWeights": {
+    "strength": 0.5,
+    "cardio": 0.35,
+    "duration": 0.15
+  },
+  "validation": {
+    "date": {
+      "pattern": "^\\d{2}-\\d{2}$",
+      "description": "日期格式应为 MM-DD"
+    },
+    "weight": {
+      "min": 40,
+      "max": 200,
+      "unit": "kg",
+      "description": "体重合理范围"
+    },
+    "bodyFat": {
+      "min": 5,
+      "max": 50,
+      "unit": "%",
+      "description": "体脂率合理范围"
+    },
+    "trainingWeight": {
+      "min": 0,
+      "max": 300,
+      "unit": "kg",
+      "description": "训练重量合理范围"
+    },
+    "reps": {
+      "min": 1,
+      "max": 100,
+      "description": "训练次数合理范围"
+    },
+    "sets": {
+      "min": 1,
+      "max": 20,
+      "description": "训练组数合理范围"
+    }
+  }
+}
