@@ -6,8 +6,11 @@
 const DATA_PATH = `${import.meta.env.BASE_URL}data.json`;
 const CONFIG_PATH = `${import.meta.env.BASE_URL}config.json`;
 const API_KEY_STORAGE_KEY = "claude_api_key";
+const BASE_URL_STORAGE_KEY = "claude_base_url";
+const DEFAULT_BASE_URL = "https://api.anthropic.com";
 
 let apiKey = null;
+let baseUrl = null;
 let conversationHistory = [];
 let userData = null;
 let config = null;
@@ -16,10 +19,17 @@ let config = null;
  * 初始化
  */
 async function init() {
-  // 加载 API Key
+  // 加载 API Key 和 Base URL
   apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+  baseUrl = localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL;
+
   if (apiKey) {
     document.getElementById("apiKeyBanner").classList.add("hidden");
+  } else {
+    // 如果有保存的 base URL，显示在输入框中
+    if (baseUrl !== DEFAULT_BASE_URL) {
+      document.getElementById("baseUrlInput").value = baseUrl;
+    }
   }
 
   // 加载用户数据
@@ -59,26 +69,37 @@ async function init() {
 }
 
 /**
- * 保存 API Key
+ * 保存 API Key 和 Base URL
  */
 function saveApiKey() {
-  const input = document.getElementById("apiKeyInput");
-  const key = input.value.trim();
+  const keyInput = document.getElementById("apiKeyInput");
+  const urlInput = document.getElementById("baseUrlInput");
+  const key = keyInput.value.trim();
+  const url = urlInput.value.trim();
 
   if (!key) {
     alert("请输入 API Key");
     return;
   }
 
-  if (!key.startsWith("sk-ant-")) {
-    alert("API Key 格式不正确，应以 sk-ant- 开头");
-    return;
-  }
-
+  // 保存 API Key
   apiKey = key;
   localStorage.setItem(API_KEY_STORAGE_KEY, key);
+
+  // 保存 Base URL（如果提供了）
+  if (url) {
+    // 移除末尾的斜杠
+    baseUrl = url.replace(/\/$/, "");
+    localStorage.setItem(BASE_URL_STORAGE_KEY, baseUrl);
+  } else {
+    baseUrl = DEFAULT_BASE_URL;
+    localStorage.removeItem(BASE_URL_STORAGE_KEY);
+  }
+
   document.getElementById("apiKeyBanner").classList.add("hidden");
-  addMessage("assistant", "✅ API Key 已保存！现在你可以开始使用 AI 助手了。");
+
+  const urlInfo = baseUrl !== DEFAULT_BASE_URL ? `\n使用自定义 Base URL: ${baseUrl}` : "";
+  addMessage("assistant", `✅ API 配置已保存！${urlInfo}\n\n现在你可以开始使用 AI 助手了。`);
 }
 
 /**
@@ -151,7 +172,10 @@ async function callClaudeAPI(userMessage) {
     content: userMessage,
   });
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  // 构建 API endpoint
+  const apiEndpoint = `${baseUrl}/v1/messages`;
+
+  const response = await fetch(apiEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -167,8 +191,17 @@ async function callClaudeAPI(userMessage) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "API 调用失败");
+    const errorText = await response.text();
+    let errorMessage = "API 调用失败";
+
+    try {
+      const error = JSON.parse(errorText);
+      errorMessage = error.error?.message || errorMessage;
+    } catch {
+      errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
+    }
+
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
