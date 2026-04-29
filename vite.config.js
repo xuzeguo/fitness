@@ -16,6 +16,7 @@ export default defineConfig({
         log: resolve(__dirname, "log.html"),
         goals: resolve(__dirname, "goals.html"),
         entry: resolve(__dirname, "entry.html"),
+        aiAssistant: resolve(__dirname, "ai-assistant.html"),
       },
     },
   },
