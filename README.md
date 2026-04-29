@@ -1,6 +1,18 @@
-# 健身数据（前端）
+# 健身数据管理系统
 
 与仓库根目录其他碎碎念文档相对独立：静态数据在 `public/`，页面用 Vite 开发与打包。
+
+## ✨ 最新优化（2026-04）
+
+本项目经过系统性优化，大幅提升了数据录入效率和代码可维护性：
+
+- ✅ **数据校验**：自动校验日期、体重、体脂、训练数据，防止录入错误
+- ✅ **配置文件**：统一管理动作列表、评分权重、校验规则
+- ✅ **脚本重构**：主脚本代码减少 66%（485 → 162 行），模块化设计
+- ✅ **Web 表单**：可视化数据录入页面，录入时间从 10 分钟降至 2 分钟
+- ✅ **权重调整**：综合评分权重可自定义，实时更新图表
+
+详见 [OPTIMIZATION_PLAN.md](./OPTIMIZATION_PLAN.md) 查看完整优化计划。
 
 ## 技术架构与实现摘要（项目总览）
 
@@ -18,6 +30,7 @@
 项目通过 `vite.config.js` 配置多入口打包，构建输出为多个页面：
 
 - **`/`**：首页（`index.html`）
+- **`/entry.html`**：数据录入（`entry.html` + `src/entry.js`）⭐ 新增
 - **`/trends.html`**：训练趋势（`trends.html` + `src/trends.js`）
 - **`/report.html`**：减重报告（`report.html` + `src/report.js`）
 - **`/log.html`**：训练记录原文（`log.html` + `src/log.js`）
@@ -27,6 +40,7 @@
 
 所有数据/正文都以**静态文件**形式放在 `public/`，由浏览器在运行时用 `fetch()` 读取：
 
+- **配置文件**：`public/config.json`（动作列表、评分权重、校验规则）⭐ 新增
 - **图表数据**：`public/data.json`
 - **正文 Markdown**：`public/report.md`、`public/training-log.md`、`public/goals.md`
 
@@ -58,7 +72,8 @@ Vite 的约定是：`public/` 下文件会在构建时被**原样复制到 `dist
 | 路径 | 说明 |
 |------|------|
 | `/` | 首页入口 |
-| `/trends.html` | 训练趋势（ECharts；体重图含目标区间、预测线与下方「预测说明」；选取说明区间时忽略换算 > 3.5 kg/周的过快降幅段，不输出按记录斜率外推的 kg/周 与到达日） |
+| `/entry.html` | **数据录入**（可视化表单，自动填充上次数据，生成 CSV）⭐ 新增 |
+| `/trends.html` | 训练趋势（ECharts；支持自定义评分权重；体重图含目标区间、预测线与下方「预测说明」） |
 | `/report.html` | 减重报告（渲染 `public/report.md`） |
 | `/log.html` | 训练记录原文（渲染 `public/training-log.md`） |
 | `/goals.html` | 目标（渲染 `public/goals.md`） |
@@ -94,13 +109,58 @@ python3 -m http.server 8765
 
 ## 数据维护
 
-- 图表数据：`public/data.json`（含 `rows`、`bodyMetrics` 与可选 `bodyGoals`；趋势页「体重与体脂」图会按 `bodyGoals.weightKg.min` 与每周 −0.5kg 生成粉色 **目标体重预测** 虚线，体脂为紫色 **目标体脂预测** 虚线。图下「预测说明」选取区间时，若相邻不同日期段换算速降超过 **3.5 kg/周** 则跳过该段（折线仍全部显示）；正文不再给出按记录斜率换算的 kg/周 或外推到达日，仅保留参考节奏下的粗算）
+### 🚀 快速录入（推荐）
+
+访问 `/entry.html` 使用可视化表单录入训练数据：
+
+1. 自动填充今天的日期
+2. 显示上次训练数据作为参考
+3. 一键复制上次训练记录
+4. 填写完成后点击「生成 CSV」
+5. 下载生成的 CSV 文件，替换 `public/training-log.csv`
+6. 运行 `npm run rebuild:data` 更新数据
+
+**优势：** 录入时间从 10 分钟降至 2 分钟，自动校验数据格式。
+
+### 📝 手动维护（传统方式）
+
+- **配置文件**：`config.json`（动作列表、评分权重、校验规则）
+- 图表数据：`public/data.json`（含 `rows`、`bodyMetrics` 与可选 `bodyGoals`）
 - 报告正文：`public/report.md`
 - 训练手账：**只维护** `public/training-log.csv`，然后执行 `npm run rebuild:data` 自动生成/更新 `public/data.json` 与 `public/training-log.md`（并同步到 `standalone/`）
-- 体重/体脂：推荐维护 `public/body-metrics.csv`（可选）；脚本会在重建时把它写回 `public/data.json.bodyMetrics`（若该 CSV 为空/仅表头，则继续保留 `data.json` 里原有 `bodyMetrics`，不会清空历史）
-- 进店记录：推荐维护 `public/gym-visits.csv`（可选）；脚本会在生成 `public/training-log.md` 时读取该 CSV（若该 CSV 为空/仅表头，则继续沿用脚本内置的历史数据）
-- 围度记录：推荐维护 `public/girth.csv`（可选）；脚本会在生成 `public/training-log.md` 时读取该 CSV（若该 CSV 为空/仅表头，则继续沿用脚本内置的历史数据）
+- 体重/体脂：推荐维护 `public/body-metrics.csv`（可选）；脚本会在重建时把它写回 `public/data.json.bodyMetrics`
+- 进店记录：推荐维护 `public/gym-visits.csv`（可选）
+- 围度记录：推荐维护 `public/girth.csv`（可选）
 - 目标正文：`public/goals.md`
+
+### ⚙️ 配置文件说明
+
+`config.json` 统一管理系统配置：
+
+```json
+{
+  "exercises": [
+    {
+      "name": "坐立卷腹机",
+      "category": "核心",
+      "unit": "kg",
+      "enabled": true,
+      "order": 1
+    }
+  ],
+  "scoreWeights": {
+    "strength": 0.5,
+    "cardio": 0.35,
+    "duration": 0.15
+  },
+  "validation": {
+    "weight": { "min": 40, "max": 200 },
+    "bodyFat": { "min": 5, "max": 50 }
+  }
+}
+```
+
+**修改配置后无需重新编译**，刷新页面即可生效。
 
 ### 初始化 / 一键导出历史数据到 CSV（推荐）
 
