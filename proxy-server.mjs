@@ -13,13 +13,24 @@ const API_KEY = process.env.ANTHROPIC_AUTH_TOKEN || '';
 const server = http.createServer((req, res) => {
   // 设置 CORS 头
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key, anthropic-version');
 
   // 处理 OPTIONS 预检请求
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
+    return;
+  }
+
+  // 提供配置信息（GET /config）
+  if (req.method === 'GET' && req.url === '/config') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      baseUrl: `http://localhost:${PORT}`,
+      apiPath: '/v1',
+      apiKey: API_KEY,
+    }));
     return;
   }
 

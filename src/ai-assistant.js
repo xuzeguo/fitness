@@ -9,7 +9,7 @@ const API_KEY_STORAGE_KEY = "claude_api_key";
 const BASE_URL_STORAGE_KEY = "claude_base_url";
 const API_PATH_STORAGE_KEY = "claude_api_path";
 const DEFAULT_BASE_URL = "https://api.anthropic.com";
-const DEFAULT_API_PATH = "/v1/messages";
+const DEFAULT_API_PATH = "/v1";
 
 let apiKey = null;
 let baseUrl = null;
@@ -22,28 +22,57 @@ let config = null;
  * 初始化
  */
 async function init() {
-  // 加载 API Key、Base URL 和 API Path
-  apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-  baseUrl = localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL;
-  apiPath = localStorage.getItem(API_PATH_STORAGE_KEY) || DEFAULT_API_PATH;
+  // 尝试从代理服务器自动获取配置
+  try {
+    const configRes = await fetch('http://localhost:3001/config', { cache: "no-store" });
+    if (configRes.ok) {
+      const autoConfig = await configRes.json();
 
-  if (apiKey) {
-    document.getElementById("apiKeyBanner").classList.add("hidden");
-  } else {
-    // 如果有保存的配置，显示在输入框中
-    if (baseUrl !== DEFAULT_BASE_URL) {
-      document.getElementById("baseUrlInput").value = baseUrl;
+      // 自动保存配置
+      apiKey = autoConfig.apiKey;
+      baseUrl = autoConfig.baseUrl;
+      apiPath = autoConfig.apiPath;
+
+      localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+      localStorage.setItem(BASE_URL_STORAGE_KEY, baseUrl);
+      localStorage.setItem(API_PATH_STORAGE_KEY, apiPath);
+
+      // 隐藏配置界面
+      document.getElementById("apiKeyBanner").classList.add("hidden");
+
+      console.log("✅ 已自动加载配置");
+      console.log("Base URL:", baseUrl);
+      console.log("API Path:", apiPath);
+
+      // 显示欢迎消息
+      addMessage("assistant", "✅ 配置已自动加载！你可以直接开始使用 AI 助手了。");
     }
-    if (apiPath !== DEFAULT_API_PATH) {
-      const pathSelect = document.getElementById("apiPathSelect");
-      if (apiPath === "/v1") {
-        pathSelect.value = "/v1";
-      } else if (apiPath === "/v1/messages") {
-        pathSelect.value = "/v1/messages";
-      } else {
-        pathSelect.value = "custom";
-        document.getElementById("customPathInput").style.display = "inline-block";
-        document.getElementById("customPathInput").value = apiPath;
+  } catch (error) {
+    console.log("ℹ️ 未检测到代理服务器，使用手动配置模式");
+
+    // 加载本地保存的配置
+    apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+    baseUrl = localStorage.getItem(BASE_URL_STORAGE_KEY) || DEFAULT_BASE_URL;
+    apiPath = localStorage.getItem(API_PATH_STORAGE_KEY) || DEFAULT_API_PATH;
+
+    if (apiKey) {
+      document.getElementById("apiKeyBanner").classList.add("hidden");
+    } else {
+      // 如果有保存的配置，显示在输入框中
+      if (baseUrl !== DEFAULT_BASE_URL) {
+        document.getElementById("baseUrlInput").value = baseUrl;
+      }
+      if (apiPath !== DEFAULT_API_PATH) {
+        const pathSelect = document.getElementById("apiPathSelect");
+        if (apiPath === "/v1") {
+          pathSelect.value = "/v1";
+        } else if (apiPath === "/v1/messages") {
+          pathSelect.value = "/v1/messages";
+        } else {
+          pathSelect.value = "custom";
+          document.getElementById("customPathInput").style.display = "inline-block";
+          document.getElementById("customPathInput").value = apiPath;
+        }
       }
     }
   }
@@ -76,7 +105,9 @@ async function init() {
   }
 
   // 绑定事件
-  document.getElementById("saveApiKeyBtn").addEventListener("click", saveApiKey);
+  document
+    .getElementById("saveApiKeyBtn")
+    .addEventListener("click", saveApiKey);
   document.getElementById("sendBtn").addEventListener("click", sendMessage);
   document.getElementById("userInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -138,7 +169,10 @@ function saveApiKey() {
   document.getElementById("apiKeyBanner").classList.add("hidden");
 
   const configInfo = `Base URL: ${baseUrl}\nAPI Path: ${apiPath}`;
-  addMessage("assistant", `✅ API 配置已保存！\n\n${configInfo}\n\n现在你可以开始使用 AI 助手了。`);
+  addMessage(
+    "assistant",
+    `✅ API 配置已保存！\n\n${configInfo}\n\n现在你可以开始使用 AI 助手了。`,
+  );
 }
 
 /**
@@ -271,14 +305,14 @@ async function callClaudeAPI(userMessage) {
     if (error.message === "Failed to fetch") {
       throw new Error(
         `网络请求失败，可能的原因：\n\n` +
-        `1. Base URL 配置错误\n` +
-        `   当前配置: ${baseUrl}\n` +
-        `   请检查中转站地址是否正确\n\n` +
-        `2. CORS 跨域问题\n` +
-        `   中转站可能未配置 CORS 允许\n\n` +
-        `3. 网络连接问题\n` +
-        `   请检查网络连接是否正常\n\n` +
-        `💡 建议：打开浏览器开发者工具（F12）查看 Network 标签页的详细错误信息`
+          `1. Base URL 配置错误\n` +
+          `   当前配置: ${baseUrl}\n` +
+          `   请检查中转站地址是否正确\n\n` +
+          `2. CORS 跨域问题\n` +
+          `   中转站可能未配置 CORS 允许\n\n` +
+          `3. 网络连接问题\n` +
+          `   请检查网络连接是否正常\n\n` +
+          `💡 建议：打开浏览器开发者工具（F12）查看 Network 标签页的详细错误信息`,
       );
     }
 
@@ -395,9 +429,9 @@ function addMessage(role, content) {
 function formatMessage(content) {
   // 简单的 Markdown 支持
   let formatted = content
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>');
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, "<pre><code>$2</code></pre>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n/g, "<br>");
 
   return formatted;
 }
