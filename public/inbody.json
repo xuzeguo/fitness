@@ -1,0 +1,125 @@
+[
+  {
+    "date": "2026-03-27",
+    "note": "训练第4周，基础数据基准",
+    "body": {
+      "weight": 94.3,
+      "bmi": 30.8,
+      "bodyFatPct": 32.1,
+      "leanMass": 64.0,
+      "skeletalMuscleMass": 36.0,
+      "bodyFatMass": 30.3
+    },
+    "composition": {
+      "intracellularWater": 29.1,
+      "extracellularWater": 18.0,
+      "totalBodyWater": 47.1,
+      "protein": 12.5,
+      "mineral": 4.37
+    },
+    "ecwRatio": 0.381,
+    "segmental": {
+      "muscle": {
+        "rightArm": 3.79,
+        "leftArm": 3.81,
+        "trunk": 29.1,
+        "rightLeg": 9.75,
+        "leftLeg": 9.50
+      },
+      "fat": {
+        "rightArm": 2.3,
+        "leftArm": 2.3,
+        "trunk": 16.5,
+        "rightLeg": 3.9,
+        "leftLeg": 3.9
+      }
+    },
+    "metabolism": {
+      "bmr": 1753
+    },
+    "visceralFatArea": 141.2,
+    "inbodyScore": 68
+  },
+  {
+    "date": "2026-04-25",
+    "note": "训练第9周，减重阶段中期",
+    "body": {
+      "weight": 87.6,
+      "bmi": 28.6,
+      "bodyFatPct": 29.3,
+      "leanMass": 61.9,
+      "skeletalMuscleMass": 34.8,
+      "bodyFatMass": 25.7
+    },
+    "composition": {
+      "intracellularWater": 28.2,
+      "extracellularWater": 17.2,
+      "totalBodyWater": 45.4,
+      "protein": 12.2,
+      "mineral": 4.34
+    },
+    "ecwRatio": 0.379,
+    "segmental": {
+      "muscle": {
+        "rightArm": 3.51,
+        "leftArm": 3.55,
+        "trunk": 27.6,
+        "rightLeg": 9.56,
+        "leftLeg": 9.31
+      },
+      "fat": {
+        "rightArm": 1.8,
+        "leftArm": 1.8,
+        "trunk": 13.9,
+        "rightLeg": 3.5,
+        "leftLeg": 3.5
+      }
+    },
+    "metabolism": {
+      "bmr": 1707
+    },
+    "visceralFatArea": 113.1,
+    "inbodyScore": 70
+  },
+  {
+    "date": "2026-05-25",
+    "note": "复训第一天，旅行归来首次InBody",
+    "body": {
+      "weight": 84.9,
+      "bmi": 27.7,
+      "bodyFatPct": 28.8,
+      "leanMass": 60.4,
+      "skeletalMuscleMass": 34.0,
+      "bodyFatMass": 24.5
+    },
+    "composition": {
+      "intracellularWater": 27.6,
+      "extracellularWater": 16.8,
+      "totalBodyWater": 44.4,
+      "protein": 11.9,
+      "mineral": 4.12
+    },
+    "ecwRatio": 0.378,
+    "segmental": {
+      "muscle": {
+        "rightArm": 3.45,
+        "leftArm": 3.40,
+        "trunk": 27.0,
+        "rightLeg": 9.56,
+        "leftLeg": 9.23
+      },
+      "fat": {
+        "rightArm": 1.6,
+        "leftArm": 1.6,
+        "trunk": 13.2,
+        "rightLeg": 3.4,
+        "leftLeg": 3.4
+      }
+    },
+    "metabolism": {
+      "bmr": 1675
+    },
+    "visceralFatArea": 106.4,
+    "inbodyScore": 69
+  }
+]

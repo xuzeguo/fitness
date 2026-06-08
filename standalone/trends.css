@@ -49,6 +49,71 @@ select {
   padding: 6px 8px;
 }
 
+.weight-controls {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weight-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weight-item label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.weight-item input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.weight-item input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+}
+
+.weight-item input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.btn-small:hover {
+  background: #4b5563;
+}
+
 .checkbox {
   gap: 6px;
 }
@@ -147,4 +212,334 @@ code {
 .nav-sep {
   margin: 0 6px;
   color: #999;
+}
+
+/* ── InBody 模块样式 ─────────────────────────────────────── */
+
+/* 通用基础 */
+.ib-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 5px;
+  margin: 20px 0 10px;
+}
+
+.ib-section-h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #111827;
+}
+
+.ib-divider {
+  border: none;
+  border-top: 1px dashed #d1d5db;
+  margin: 28px 0;
+}
+
+.ib-good   { color: #16a34a; font-weight: 600; }
+.ib-bad    { color: #dc2626; font-weight: 600; }
+.ib-neutral{ color: #6b7280; }
+.ib-na     { color: #9ca3af; }
+
+.ib-error {
+  color: #dc2626;
+  padding: 16px;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+/* ── 趋势对比区 ──────────────────────────────── */
+.ib-trend {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 20px 16px;
+}
+
+.ib-trend-h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ib-trend-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.ib-trend-scroll {
+  overflow-x: auto;
+}
+
+/* 趋势核心表 */
+.ib-ctable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ib-ctable th {
+  background: #f8fafc;
+  padding: 7px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+}
+
+.ib-ctable td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+.ib-ctable tbody tr:hover td { background: #f9fafb; }
+
+.ib-ctable td small {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 2px;
+}
+
+.ib-row-label {
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.ib-ref, .ib-ref-sm {
+  color: #9ca3af;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ib-val-cell small {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-left: 1px;
+}
+
+.ib-step {
+  font-size: 11px;
+}
+
+.ib-total {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ECharts 图表网格 */
+.ib-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ib-chart {
+  width: 100%;
+  height: 220px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 700px) {
+  .ib-charts-grid { grid-template-columns: 1fr; }
+}
+
+/* ── 单份报告区 ─────────────────────────────── */
+.ib-report {
+  margin-bottom: 4px;
+}
+
+.ib-report-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.ib-date {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.ib-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 10px;
+  padding: 2px 9px;
+}
+
+.ib-note {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* 左右两栏：指标表 + 体成分堆叠 */
+.ib-report-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .ib-report-body { grid-template-columns: 1fr; }
+}
+
+/* 指标表 */
+.ib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ib-table thead th {
+  background: #f8fafc;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.ib-table tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.ib-table tbody tr:last-child td { border-bottom: none; }
+.ib-table tbody tr:hover td { background: #f9fafb; }
+
+/* 体成分堆叠条 */
+.ib-stack-bar {
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.ib-stack-seg {
+  height: 100%;
+  transition: opacity 0.15s;
+}
+.ib-stack-seg:hover { opacity: 0.8; }
+
+.s-fat  { background: #fca5a5; }
+.s-ecw  { background: #93c5fd; }
+.s-icw  { background: #60a5fa; }
+.s-prot { background: #86efac; }
+.s-min  { background: #d8b4fe; }
+
+.ib-stack-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.ib-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ib-leg-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.ib-insight {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.ib-insight p { margin: 0 0 4px; }
+.ib-insight p:last-child { margin-bottom: 0; }
+
+/* 节段哑铃表 */
+.ib-seg-table {
+  margin-top: 4px;
+}
+
+.ib-seg-label {
+  width: 3.5em;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ib-bar-cell {
+  padding: 5px 10px !important;
+  min-width: 120px;
+}
+
+.ib-bar-wrap {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.ib-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.ib-bar-m { background: #3b82f6; }
+.ib-bar-f { background: #f97316; }
+
+.ib-bar-num {
+  font-size: 12px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.ib-ratio {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 8px !important;
+}
+
+.loading {
+  color: #6b7280;
+  padding: 32px;
+  text-align: center;
 }
