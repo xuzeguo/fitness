@@ -38,7 +38,7 @@ function lineSeriesLabel(formatter, position = "top") {
     show: true,
     position,
     distance: 4,
-    fontSize: 15,
+    fontSize: 12,
     color: "#444",
     formatter,
   };
@@ -546,174 +546,254 @@ function bodyGoalExtrasBodyFat(bodyGoals) {
   return out;
 }
 
-function renderBodyChart(chart, points, bodyGoals) {
-  const container = document.getElementById("bodyHint");
+/** ─── 体重图（单轴，含预测） ─── */
+function renderWeightChart(chart, points, bodyGoals) {
+  const hintEl = document.getElementById("weightHint");
   if (!points.length) {
     chart.clear();
-    if (container) container.textContent = "暂无体重数据：请在 data.json 中填写 bodyMetrics。";
-    const noteEl = document.getElementById("bodyForecastNote");
-    if (noteEl) noteEl.textContent = "";
+    if (hintEl) hintEl.textContent = "暂无体重数据。";
     return;
   }
-  const proj = buildBodyWeeklyProjection(points, bodyGoals);
-  const goalHint =
-    bodyGoals?.weightKg || bodyGoals?.bodyFatPercent
-      ? "浅绿带/虚线：目标体重区间（bodyGoals.weightKg）；浅蓝带/虚线：目标体脂区间（bodyGoals.bodyFatPercent）。"
-      : "";
-  const projHint = proj
-    ? `粉色虚线：目标体重预测（自最近测量起每周 −0.5kg，共 ${proj.weeks} 周）；${
-        proj.hasBfForecast
-          ? "紫色虚线：目标体脂预测（同期线性至目标体脂区间中点）。"
-          : "最近无有效体脂数据，未画体脂预测。"
-      }`
-    : "";
-  if (container) {
-    container.textContent =
-      "左轴：体重（kg）；右轴：体脂率（%）。同日多次测量会显示为 月-日·2、·3…" +
-      "\n下方「预测说明」与上图同源：选取说明用区间时会忽略换算速降 > 3.5 kg/周 的区段（异常点仍画在图上）。" +
-      "\n阶段心态：收益递减正常；第二段「百天」最易变慢，忌因焦虑而加练、节食走极端——可对照目标页：腰围、力量、状态三样。" +
-      (goalHint ? `\n${goalHint}` : "") +
-      (projHint ? `\n${projHint}` : "");
-  }
 
+  const proj = buildBodyWeeklyProjection(points, bodyGoals);
   const histXs = labelBodyAxis(points);
   const xs = proj?.xs ?? histXs;
-  const w = proj?.wPadded ?? points.map((p) => p.weightKg);
-  const bf = proj?.bfPadded ?? points.map((p) => (p.bodyFat == null ? null : p.bodyFat));
-
+  const wActual = proj?.wPadded ?? points.map((p) => p.weightKg);
   const wExtra = bodyGoalExtrasWeight(bodyGoals);
-  const bfExtra = bodyGoalExtrasBodyFat(bodyGoals);
 
-  // 默认只展示「实际测量值覆盖的日期范围」；预测部分可手动拖动/缩放查看。
-  const zoomStartValue = histXs[0];
-  const zoomEndValue = histXs[histXs.length - 1];
-  const dataZoom = proj
-    ? DATA_ZOOM_X.map((z) => ({ ...z, startValue: zoomStartValue, endValue: zoomEndValue }))
-    : DATA_ZOOM_X;
+  const dataZoom = DATA_ZOOM_X;
 
-  const legendData = ["体重", "体脂率"];
-  const seriesList = [
-    {
-      name: "体重",
-      type: "line",
-      yAxisIndex: 0,
-      data: w,
-      symbolSize: 6,
-      lineStyle: { width: 2 },
-      label: lineSeriesLabel((p) => {
-        const v = p.value;
-        if (v == null || v === "") return "";
-        const n = Number(v);
-        return Number.isFinite(n) ? n.toFixed(1) : "";
-      }, "top"),
-      ...wExtra,
+  // 实测系列
+  const actualSeries = {
+    name: "实测体重",
+    type: "line",
+    data: wActual,
+    symbolSize: 8,
+    symbol: "circle",
+    lineStyle: { width: 2.5, color: "#2563eb" },
+    itemStyle: { color: "#2563eb", borderColor: "#fff", borderWidth: 2 },
+    areaStyle: {
+      color: {
+        type: "linear", x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [
+          { offset: 0, color: "rgba(37,99,235,0.18)" },
+          { offset: 1, color: "rgba(37,99,235,0.02)" },
+        ],
+      },
     },
-    {
-      name: "体脂率",
-      type: "line",
-      yAxisIndex: 1,
-      data: bf,
-      symbolSize: 6,
-      lineStyle: { width: 2 },
-      label: lineSeriesLabel((p) => {
-        const v = p.value;
-        if (v == null || v === "") return "";
-        const n = Number(v);
-        return Number.isFinite(n) ? n.toFixed(1) : "";
-      }, "bottom"),
-      ...bfExtra,
-    },
-  ];
+    label: lineSeriesLabel((p) => {
+      const n = Number(p.value);
+      return Number.isFinite(n) ? n.toFixed(1) : "";
+    }, "top"),
+    labelLayout: { hideOverlap: true },
+    ...wExtra,
+  };
 
+  const series = [actualSeries];
+
+  // 预测系列（虚线，空心菱形节点，仅在预测段显示）
   if (proj) {
-    legendData.push("目标体重预测");
-    seriesList.push({
-      name: "目标体重预测",
+    series.push({
+      name: "预测体重",
       type: "line",
-      yAxisIndex: 0,
       data: proj.wFore,
       connectNulls: true,
-      // 预测点不是“实际测量值”，仅保留虚线，不画点位
-      showSymbol: false,
-      symbol: "none",
-      symbolSize: 5,
-      lineStyle: { width: 2, type: "dashed", color: "#db2777" },
-      itemStyle: { color: "#db2777" },
+      symbolSize: 6,
+      symbol: "diamond",
+      showSymbol: true,
+      lineStyle: { width: 2, type: "dashed", color: "#f97316", opacity: 0.85 },
+      itemStyle: { color: "#fff", borderColor: "#f97316", borderWidth: 2 },
       label: lineSeriesLabel((p) => {
-        const v = p.value;
-        if (v == null || v === "") return "";
-        const n = Number(v);
-        return Number.isFinite(n) ? n.toFixed(1) : "";
+        const n = Number(p.value);
+        if (!Number.isFinite(n)) return "";
+        // 仅标注末尾目标点
+        return p.dataIndex === proj.wFore.length - 1 ? n.toFixed(1) : "";
       }, "top"),
+      labelLayout: { hideOverlap: true },
     });
-    if (proj.hasBfForecast) {
-      legendData.push("目标体脂预测");
-      seriesList.push({
-        name: "目标体脂预测",
-        type: "line",
-        yAxisIndex: 1,
-        data: proj.bfFore,
-        connectNulls: true,
-        // 预测点不是“实际测量值”，仅保留虚线，不画点位
-        showSymbol: false,
-        symbol: "none",
-        symbolSize: 5,
-        lineStyle: { width: 2, type: "dashed", color: "#7c3aed" },
-        itemStyle: { color: "#7c3aed" },
-        label: lineSeriesLabel((p) => {
-          const v = p.value;
-          if (v == null || v === "") return "";
-          const n = Number(v);
-          return Number.isFinite(n) ? n.toFixed(1) : "";
-        }, "bottom"),
-      });
-    }
+  }
+
+  if (hintEl) {
+    hintEl.textContent =
+      "实线实心圆：实际每日体重。" +
+      (proj
+        ? `虚线菱形：参考节奏预测（每周 −0.5 kg，共 ${proj.weeks} 周）。右侧拖动滑块可查看预测区段。`
+        : "") +
+      (bodyGoals?.weightKg ? "  绿色带：目标体重区间。" : "");
   }
 
   chart.setOption({
     animation: false,
-    grid: { left: 52, right: 52, top: proj ? 52 : 44, bottom: 62 },
-    tooltip: { trigger: "axis", textStyle: { fontSize: 15 } },
-    legend: {
-      data: legendData,
-      top: 0,
-      type: proj ? "scroll" : "plain",
-      textStyle: { fontSize: 15 },
+    backgroundColor: "transparent",
+    grid: { left: 56, right: 24, top: 20, bottom: 58 },
+    tooltip: {
+      trigger: "axis",
+      textStyle: { fontSize: 14 },
+      formatter(params) {
+        const date = params[0]?.axisValue ?? "";
+        return params
+          .filter((p) => p.value != null)
+          .map((p) => {
+            const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:5px"></span>`;
+            return `${dot}${p.seriesName}: <b>${Number(p.value).toFixed(1)} kg</b>`;
+          })
+          .join("<br>")
+          ? `<div style="font-size:13px;color:#6b7280;margin-bottom:3px">${date}</div>` +
+            params
+              .filter((p) => p.value != null)
+              .map((p) => {
+                const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:5px"></span>`;
+                return `${dot}${p.seriesName}: <b>${Number(p.value).toFixed(1)} kg</b>`;
+              })
+              .join("<br>")
+          : "";
+      },
     },
     dataZoom,
-    xAxis: { type: "category", data: xs, axisLabel: { rotate: 40, fontSize: 15 } },
-    yAxis: [
-      {
-        type: "value",
-        name: "kg",
-        scale: true,
-        nameTextStyle: { fontSize: 15 },
-        axisLabel: { fontSize: 15 },
-      },
-      {
-        type: "value",
-        name: "%",
-        scale: true,
-        nameTextStyle: { fontSize: 15 },
-        axisLabel: { fontSize: 15 },
-      },
-    ],
-    series: seriesList,
+    xAxis: {
+      type: "category",
+      data: xs,
+      axisLabel: { rotate: 40, fontSize: 13, color: "#6b7280" },
+      axisLine: { lineStyle: { color: "#e5e7eb" } },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      name: "体重 (kg)",
+      scale: true,
+      nameTextStyle: { fontSize: 13, color: "#6b7280", padding: [0, 0, 0, 8] },
+      axisLabel: { fontSize: 13, color: "#6b7280", formatter: (v) => v.toFixed(0) },
+      splitLine: { lineStyle: { color: "#f3f4f6", type: "dashed" } },
+    },
+    series,
   });
+}
 
-  renderBodyForecastNote(points, bodyGoals);
+/** ─── 体脂率图（单轴，含预测） ─── */
+function renderBodyFatChart(chart, points, bodyGoals) {
+  const hintEl = document.getElementById("bodyFatHint");
+  const bfPoints = points.filter((p) => p.bodyFat != null);
+  if (!bfPoints.length) {
+    chart.clear();
+    if (hintEl) hintEl.textContent = "暂无体脂率数据。";
+    return;
+  }
+
+  const proj = buildBodyWeeklyProjection(points, bodyGoals);
+  const histXs = labelBodyAxis(points);
+  const xs = proj?.xs ?? histXs;
+  const bfActual = proj?.bfPadded ?? points.map((p) => p.bodyFat ?? null);
+  const bfExtra = bodyGoalExtrasBodyFat(bodyGoals);
+
+  const dataZoom = DATA_ZOOM_X;
+
+  const actualSeries = {
+    name: "实测体脂率",
+    type: "line",
+    data: bfActual,
+    symbolSize: 8,
+    symbol: "circle",
+    lineStyle: { width: 2.5, color: "#7c3aed" },
+    itemStyle: { color: "#7c3aed", borderColor: "#fff", borderWidth: 2 },
+    areaStyle: {
+      color: {
+        type: "linear", x: 0, y: 0, x2: 0, y2: 1,
+        colorStops: [
+          { offset: 0, color: "rgba(124,58,237,0.15)" },
+          { offset: 1, color: "rgba(124,58,237,0.02)" },
+        ],
+      },
+    },
+    label: lineSeriesLabel((p) => {
+      const n = Number(p.value);
+      return Number.isFinite(n) ? n.toFixed(1) : "";
+    }, "top"),
+    labelLayout: { hideOverlap: true },
+    ...bfExtra,
+  };
+
+  const series = [actualSeries];
+
+  if (proj?.hasBfForecast) {
+    series.push({
+      name: "预测体脂率",
+      type: "line",
+      data: proj.bfFore,
+      connectNulls: true,
+      symbolSize: 6,
+      symbol: "diamond",
+      showSymbol: true,
+      lineStyle: { width: 2, type: "dashed", color: "#ec4899", opacity: 0.85 },
+      itemStyle: { color: "#fff", borderColor: "#ec4899", borderWidth: 2 },
+      label: lineSeriesLabel((p) => {
+        const n = Number(p.value);
+        if (!Number.isFinite(n)) return "";
+        return p.dataIndex === proj.bfFore.length - 1 ? n.toFixed(1) + "%" : "";
+      }, "top"),
+      labelLayout: { hideOverlap: true },
+    });
+  }
+
+  if (hintEl) {
+    hintEl.textContent =
+      "实线实心圆：实际每日体脂率（体脂秤噪声较大，以 7 日均值或围度变化交叉验证更准）。" +
+      (proj?.hasBfForecast
+        ? `虚线菱形：线性预测至目标体脂区间中点。`
+        : "") +
+      (bodyGoals?.bodyFatPercent ? "  蓝色带：目标体脂区间。" : "");
+  }
+
+  chart.setOption({
+    animation: false,
+    backgroundColor: "transparent",
+    grid: { left: 56, right: 24, top: 20, bottom: 58 },
+    tooltip: {
+      trigger: "axis",
+      textStyle: { fontSize: 14 },
+      formatter(params) {
+        const date = params[0]?.axisValue ?? "";
+        const rows = params
+          .filter((p) => p.value != null)
+          .map((p) => {
+            const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:5px"></span>`;
+            return `${dot}${p.seriesName}: <b>${Number(p.value).toFixed(1)}%</b>`;
+          });
+        if (!rows.length) return "";
+        return `<div style="font-size:13px;color:#6b7280;margin-bottom:3px">${date}</div>` + rows.join("<br>");
+      },
+    },
+    dataZoom,
+    xAxis: {
+      type: "category",
+      data: xs,
+      axisLabel: { rotate: 40, fontSize: 13, color: "#6b7280" },
+      axisLine: { lineStyle: { color: "#e5e7eb" } },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      name: "体脂率 (%)",
+      scale: true,
+      nameTextStyle: { fontSize: 13, color: "#6b7280", padding: [0, 0, 0, 8] },
+      axisLabel: { fontSize: 13, color: "#6b7280", formatter: (v) => v.toFixed(0) + "%" },
+      splitLine: { lineStyle: { color: "#f3f4f6", type: "dashed" } },
+    },
+    series,
+  });
 }
 
 function createCharts() {
   const exerciseChart = echarts.init(document.getElementById("exerciseChart"));
   const scoreChart = echarts.init(document.getElementById("scoreChart"));
-  const bodyChart = echarts.init(document.getElementById("bodyChart"));
+  const weightChart = echarts.init(document.getElementById("weightChart"));
+  const bodyFatChart = echarts.init(document.getElementById("bodyFatChart"));
   window.addEventListener("resize", () => {
     exerciseChart.resize();
     scoreChart.resize();
-    bodyChart.resize();
+    weightChart.resize();
+    bodyFatChart.resize();
   });
-  return { exerciseChart, scoreChart, bodyChart };
+  return { exerciseChart, scoreChart, weightChart, bodyFatChart };
 }
 
 function setExerciseOptions(select, exercises) {
@@ -766,6 +846,7 @@ function renderExerciseChart(chart, data, exName, metric) {
           if (!Number.isFinite(n)) return "";
           return metric === "weight" ? n.toFixed(1) : String(Math.round(n));
         }),
+        labelLayout: { hideOverlap: true },
       },
     ],
   });
@@ -822,6 +903,7 @@ function renderScoreChart(chart, data) {
           const n = Number(v);
           return Number.isFinite(n) ? n.toFixed(3) : "";
         }),
+        labelLayout: { hideOverlap: true },
       },
     ],
   });
@@ -853,7 +935,9 @@ function rerenderAll() {
   const { xs, ys } = renderExerciseChart(charts.exerciseChart, data, ex, metric);
   renderMissingHint(missingHint, xs, ys, showMissing.checked);
   renderScoreChart(charts.scoreChart, data);
-  renderBodyChart(charts.bodyChart, bodyPoints, appState.bodyGoals);
+  renderWeightChart(charts.weightChart, bodyPoints, appState.bodyGoals);
+  renderBodyFatChart(charts.bodyFatChart, bodyPoints, appState.bodyGoals);
+  renderBodyForecastNote(bodyPoints, appState.bodyGoals);
 }
 
 async function loadData() {
