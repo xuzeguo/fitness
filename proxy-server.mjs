@@ -7,8 +7,12 @@ import http from 'http';
 import https from 'https';
 
 const PORT = 3001;
+// 中转站配置（已验证可用）
 const TARGET_BASE_URL = process.env.ANTHROPIC_BASE_URL || 'https://bmai.kun8.vip';
-const API_KEY = process.env.ANTHROPIC_AUTH_TOKEN || '';
+const API_KEY = process.env.ANTHROPIC_AUTH_TOKEN || 'bma_5e849eb942c5ad9af1ec61b2460fccd88a0126fa1ba3c8bcff4832f93d4a4c18';
+
+// ✅ 已验证：https://bmai.kun8.vip/v1/chat/completions 可用
+// 使用 OpenAI 兼容格式（Authorization: Bearer）
 
 const server = http.createServer((req, res) => {
   // 设置 CORS 头
@@ -62,8 +66,7 @@ const server = http.createServer((req, res) => {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': req.headers['x-api-key'] || API_KEY,
-        'anthropic-version': req.headers['anthropic-version'] || '2023-06-01',
+        'Authorization': `Bearer ${req.headers['x-api-key'] || API_KEY}`,
         'Content-Length': Buffer.byteLength(body),
       },
     };

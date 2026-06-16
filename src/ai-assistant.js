@@ -116,6 +116,20 @@ async function init() {
     }
   });
 
+  // 重新配置按钮
+  const reconfigBtn = document.getElementById("reconfigBtn");
+  if (reconfigBtn) {
+    reconfigBtn.addEventListener("click", () => {
+      document.getElementById("apiKeyBanner").classList.remove("hidden");
+      reconfigBtn.style.display = "none";
+    });
+
+    // 如果已配置，显示重新配置按钮
+    if (apiKey) {
+      reconfigBtn.style.display = "inline-block";
+    }
+  }
+
   // 快捷操作
   document.querySelectorAll(".quick-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -168,10 +182,16 @@ function saveApiKey() {
 
   document.getElementById("apiKeyBanner").classList.add("hidden");
 
+  // 显示重新配置按钮
+  const reconfigBtn = document.getElementById("reconfigBtn");
+  if (reconfigBtn) {
+    reconfigBtn.style.display = "inline-block";
+  }
+
   const configInfo = `Base URL: ${baseUrl}\nAPI Path: ${apiPath}`;
   addMessage(
     "assistant",
-    `✅ API 配置已保存！\n\n${configInfo}\n\n现在你可以开始使用 AI 助手了。`,
+    `✅ API 配置已保存！\n\n${configInfo}\n\n现在你可以开始使用 AI 助手了。\n\n💡 如需修改配置，点击右上角的"⚙️ 重新配置"按钮。`,
   );
 }
 
@@ -233,7 +253,7 @@ async function sendMessage() {
 }
 
 /**
- * 调用 Claude API
+ * 调用 Claude API（支持官方格式和 OpenAI 兼容格式）
  */
 async function callClaudeAPI(userMessage) {
   // 构建系统提示
@@ -248,29 +268,62 @@ async function callClaudeAPI(userMessage) {
   // 构建 API endpoint
   const apiEndpoint = `${baseUrl}${apiPath}`;
 
+  // 判断使用哪种 API 格式
+  const isOpenAIFormat = apiPath.includes("/chat/completions");
+
   console.log("🔍 调试信息:");
   console.log("Base URL:", baseUrl);
   console.log("API Path:", apiPath);
   console.log("完整 Endpoint:", apiEndpoint);
+  console.log("API 格式:", isOpenAIFormat ? "OpenAI 兼容" : "Claude 官方");
   console.log("API Key 前缀:", apiKey?.substring(0, 10) + "...");
 
   try {
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
+    // 根据不同格式构建请求
+    let headers, body;
+
+    if (isOpenAIFormat) {
+      // OpenAI 兼容格式（中转站常用）
+      headers = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      };
+
+      // 将对话历史转换为 OpenAI 格式（包含 system 消息）
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory
+      ];
+
+      body = JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 4096,
+        messages: messages,
+      });
+    } else {
+      // Claude 官方格式
+      headers = {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
+      };
+
+      body = JSON.stringify({
         model: "claude-3-5-sonnet-20241022",
         max_tokens: 4096,
         system: systemPrompt,
         messages: conversationHistory,
-      }),
+      });
+    }
+
+    const response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: headers,
+      body: body,
     });
 
     console.log("✅ 请求成功，状态码:", response.status);
+    console.log("响应类型:", response.headers.get("content-type"));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -289,7 +342,22 @@ async function callClaudeAPI(userMessage) {
     }
 
     const data = await response.json();
-    const assistantMessage = data.content[0].text;
+    console.log("📦 响应数据结构:", Object.keys(data));
+
+    // 根据不同格式解析响应
+    let assistantMessage;
+    if (isOpenAIFormat) {
+      // OpenAI 格式: data.choices[0].message.content
+      assistantMessage = data.choices?.[0]?.message?.content;
+    } else {
+      // Claude 格式: data.content[0].text
+      assistantMessage = data.content?.[0]?.text;
+    }
+
+    if (!assistantMessage) {
+      console.error("❌ 无法解析响应:", data);
+      throw new Error("API 响应格式不正确，无法提取消息内容");
+    }
 
     // 添加到对话历史
     conversationHistory.push({
@@ -306,10 +374,11 @@ async function callClaudeAPI(userMessage) {
       throw new Error(
         `网络请求失败，可能的原因：\n\n` +
           `1. Base URL 配置错误\n` +
-          `   当前配置: ${baseUrl}\n` +
+          `   当前配置: ${baseUrl}${apiPath}\n` +
           `   请检查中转站地址是否正确\n\n` +
           `2. CORS 跨域问题\n` +
-          `   中转站可能未配置 CORS 允许\n\n` +
+          `   中转站可能未配置 CORS 允许\n` +
+          `   💡 解决：使用代理服务器（npm run proxy）\n\n` +
           `3. 网络连接问题\n` +
           `   请检查网络连接是否正常\n\n` +
           `💡 建议：打开浏览器开发者工具（F12）查看 Network 标签页的详细错误信息`,

@@ -15,13 +15,15 @@
       <header class="header">
         <h1>健身训练趋势</h1>
         <div class="sub">
-          数据：<code>data.json</code>（<code>rows</code> + <code>bodyMetrics</code> + <code>bodyGoals</code> 目标区间）
+          数据：<code>data.json</code>（<code>rows</code> +
+          <code>bodyMetrics</code> + <code>bodyGoals</code> 目标区间）
         </div>
         <div class="sub">
           横轴较密时：用各图<strong>底部滑块</strong>选取日期范围；在图内可用<strong>滚轮缩放</strong>、<strong>拖拽平移</strong>。
         </div>
         <div class="sub">
-          节奏：减脂是<strong>递减曲线</strong>（前期快、后期慢）。曲线变平不等于失败——结合<strong>腰围</strong>、<strong>力量</strong>与生活状态是否稳住；详见 <a href="./goals.html">目标</a> 中的阶段与实战指标。
+          节奏：减脂是<strong>递减曲线</strong>（前期快、后期慢）。曲线变平不等于失败——结合<strong>腰围</strong>、<strong>力量</strong>与生活状态是否稳住；详见
+          <a href="./goals.html">目标</a> 中的阶段与实战指标。
         </div>
       </header>
 
@@ -54,31 +56,77 @@
           <h2>综合评分趋势</h2>
           <div class="weight-controls">
             <div class="weight-item">
-              <label>力量权重: <span id="strengthWeightValue">0.50</span></label>
-              <input type="range" id="strengthWeight" min="0" max="100" value="50" step="5">
+              <label
+                >力量权重: <span id="strengthWeightValue">0.50</span></label
+              >
+              <input
+                type="range"
+                id="strengthWeight"
+                min="0"
+                max="100"
+                value="50"
+                step="5"
+              />
             </div>
             <div class="weight-item">
               <label>有氧权重: <span id="cardioWeightValue">0.35</span></label>
-              <input type="range" id="cardioWeight" min="0" max="100" value="35" step="5">
+              <input
+                type="range"
+                id="cardioWeight"
+                min="0"
+                max="100"
+                value="35"
+                step="5"
+              />
             </div>
             <div class="weight-item">
-              <label>时长权重: <span id="durationWeightValue">0.15</span></label>
-              <input type="range" id="durationWeight" min="0" max="100" value="15" step="5">
+              <label
+                >时长权重: <span id="durationWeightValue">0.15</span></label
+              >
+              <input
+                type="range"
+                id="durationWeight"
+                min="0"
+                max="100"
+                value="15"
+                step="5"
+              />
             </div>
-            <button id="resetWeightsBtn" type="button" class="btn-small">重置为默认</button>
+            <button id="resetWeightsBtn" type="button" class="btn-small">
+              重置为默认
+            </button>
           </div>
           <div id="scoreChart" class="chart"></div>
           <div class="hint">
-            评分 = 力量权重×力量总训练量(标准化) + 有氧权重×划船功率(标准化) + 时长权重×训练时长(标准化)，再做 3 日移动平均。长期看：力量不明显掉 ≈ 营养与恢复尚可；缓升更佳。
+            评分 = 力量权重×力量总训练量(标准化) + 有氧权重×划船功率(标准化) +
+            时长权重×训练时长(标准化)，再做 3 日移动平均。长期看：力量不明显掉 ≈
+            营养与恢复尚可；缓升更佳。
           </div>
         </div>
       </section>
 
       <section class="section-body">
         <div class="card">
-          <h2>体重与体脂趋势</h2>
-          <div id="bodyChart" class="chart"></div>
-          <div id="bodyHint" class="hint"></div>
+          <h2>体重趋势</h2>
+          <div class="chart-legend-row">
+            <span class="legend-actual legend-weight">● 实测体重</span>
+            <span class="legend-forecast legend-weight-fore">⤳ 预测轨迹（-0.5 kg/周）</span>
+            <span class="legend-goal-band legend-weight-band">▬ 目标区间</span>
+          </div>
+          <div id="weightChart" class="chart"></div>
+          <div id="weightHint" class="hint"></div>
+        </div>
+        <div class="card">
+          <h2>体脂率趋势</h2>
+          <div class="chart-legend-row">
+            <span class="legend-actual legend-bf">● 实测体脂率</span>
+            <span class="legend-forecast legend-bf-fore">⤳ 预测轨迹（线性至目标）</span>
+            <span class="legend-goal-band legend-bf-band">▬ 目标区间</span>
+          </div>
+          <div id="bodyFatChart" class="chart"></div>
+          <div id="bodyFatHint" class="hint"></div>
+        </div>
+        <div class="card card-forecast-note">
           <div id="bodyForecastNote" class="forecast-note" aria-live="polite"></div>
         </div>
       </section>

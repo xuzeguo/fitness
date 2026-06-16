@@ -4,12 +4,17 @@
 
 echo "🚀 启动健身数据管理系统..."
 echo ""
-echo "⚠️  请先编辑 start.sh 文件，将 API Key 替换为你的完整 key"
+echo "⚠️  AI 助手配置说明："
+echo "   1. 如果使用中转站（如 bmai.kun8.vip），请在浏览器中手动配置"
+echo "   2. 如果使用官方 API，请设置环境变量："
+echo "      export ANTHROPIC_BASE_URL=\"https://api.anthropic.com\""
+echo "      export ANTHROPIC_AUTH_TOKEN=\"sk-ant-your-api-key\""
 echo ""
 
-# 设置中转站配置（请替换为你的 API Key）
-export ANTHROPIC_BASE_URL="https://bmai.kun8.vip"
-export ANTHROPIC_AUTH_TOKEN="bma_替换为你的完整key"
+# 设置中转站配置（可选，也可以在浏览器中手动配置）
+# 注意：中转站通常使用 OpenAI 兼容格式，需要在 AI 助手页面选择正确的 API Path
+# export ANTHROPIC_BASE_URL="https://bmai.kun8.vip"
+# export ANTHROPIC_AUTH_TOKEN="your-api-key"
 
 # 启动代理服务器（后台运行）
 echo "📡 启动 AI 代理服务器..."

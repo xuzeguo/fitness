@@ -295,6 +295,8 @@
   <div class="header">
     <h1>🤖 AI 训练助手</h1>
     <div class="nav">
+      <button class="btn btn-secondary" id="reconfigBtn" style="display: none; margin-right: 12px;">⚙️ 重新配置</button>
+      <a href="./clear-config.html" style="margin-right: 12px;">🗑️ 清除配置</a>
       <a href="./index.html">← 返回首页</a>
     </div>
   </div>
@@ -306,9 +308,10 @@
     </div>
     <div class="api-key-input">
       <input type="text" id="baseUrlInput" placeholder="Base URL（如 https://api.example.com）" style="width: 240px;">
-      <select id="apiPathSelect" style="width: 140px; padding: 6px;">
-        <option value="/v1/messages">官方 (/v1/messages)</option>
-        <option value="/v1" selected>中转站 (/v1)</option>
+      <select id="apiPathSelect" style="width: 180px; padding: 6px;">
+        <option value="/v1/messages">Claude 官方</option>
+        <option value="/v1/chat/completions" selected>OpenAI 兼容（中转站）</option>
+        <option value="/v1">旧版中转站</option>
         <option value="custom">自定义路径</option>
       </select>
       <input type="text" id="customPathInput" placeholder="自定义路径" style="width: 120px; display: none;">

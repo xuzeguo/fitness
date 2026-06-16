@@ -275,6 +275,23 @@ function renderReport(rec, idx, asc) {
     </table>
   `;
 
+  // 原始报告图片
+  const imgDate = rec.date.replace(/-/g, "");
+  const imgPath = `${import.meta.env.BASE_URL}INBODY_${imgDate}.jpg`;
+  const imgSection = document.createElement("div");
+  imgSection.className = "ib-raw-img-wrap";
+  imgSection.innerHTML = `
+    <div class="ib-section-title">原始报告</div>
+    <img
+      src="${imgPath}"
+      alt="InBody 原始报告 ${rec.date}"
+      class="ib-raw-img"
+      loading="lazy"
+      onerror="this.closest('.ib-raw-img-wrap').style.display='none'"
+    />
+  `;
+  card.appendChild(imgSection);
+
   // 体成分堆叠条（仿 InBody 原报告）
   const stackEl = card.querySelector(`#comp-stack-${idx}`);
   const fat = b.bodyFatMass;
@@ -329,6 +346,31 @@ async function main() {
         const d = document.createElement("hr");
         d.className = "ib-divider";
         app.appendChild(d);
+      }
+    });
+    // 图片点击放大
+    app.addEventListener("click", e => {
+      const img = e.target.closest(".ib-raw-img");
+      if (!img) {
+        const overlay = document.querySelector(".ib-img-overlay");
+        if (overlay) {
+          overlay.remove();
+          document.querySelector(".ib-raw-img.zoomed")?.classList.remove("zoomed");
+        }
+        return;
+      }
+      if (img.classList.contains("zoomed")) {
+        img.classList.remove("zoomed");
+        document.querySelector(".ib-img-overlay")?.remove();
+      } else {
+        const overlay = document.createElement("div");
+        overlay.className = "ib-img-overlay";
+        document.body.appendChild(overlay);
+        img.classList.add("zoomed");
+        overlay.addEventListener("click", () => {
+          overlay.remove();
+          img.classList.remove("zoomed");
+        });
       }
     });
   } catch (e) {

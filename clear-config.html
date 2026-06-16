@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>清除 AI 助手配置</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .info {
+      background: #fef3c7;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border-left: 4px solid #fbbf24;
+    }
+    .config-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f3f4f6;
+      border-radius: 4px;
+    }
+    .config-item strong {
+      color: #2563eb;
+    }
+    button {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #b91c1c;
+    }
+    .btn-secondary {
+      background: #2563eb;
+    }
+    .btn-secondary:hover {
+      background: #1d4ed8;
+    }
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔧 清除 AI 助手配置</h1>
+
+    <div class="info">
+      <strong>⚠️ 当前保存的配置：</strong>
+      <div class="config-item">
+        <strong>Base URL:</strong> <span id="currentBaseUrl">-</span>
+      </div>
+      <div class="config-item">
+        <strong>API Path:</strong> <span id="currentApiPath">-</span>
+      </div>
+      <div class="config-item">
+        <strong>API Key:</strong> <span id="currentApiKey">-</span>
+      </div>
+    </div>
+
+    <p>如果 AI 助手返回 HTML 页面，可能是因为保存了错误的配置。</p>
+    <p>点击下面的按钮清除配置，然后重新设置。</p>
+
+    <button onclick="clearConfig()">🗑️ 清除配置</button>
+    <button class="btn-secondary" onclick="goToAI()">→ 前往 AI 助手</button>
+
+    <div class="success" id="successMsg">
+      ✅ 配置已清除！现在可以前往 AI 助手页面重新配置。
+    </div>
+  </div>
+
+  <script>
+    // 显示当前配置
+    function displayCurrentConfig() {
+      const baseUrl = localStorage.getItem('claude_base_url') || '未设置';
+      const apiPath = localStorage.getItem('claude_api_path') || '未设置';
+      const apiKey = localStorage.getItem('claude_api_key') || '未设置';
+
+      document.getElementById('currentBaseUrl').textContent = baseUrl;
+      document.getElementById('currentApiPath').textContent = apiPath;
+
+      if (apiKey !== '未设置') {
+        document.getElementById('currentApiKey').textContent =
+          apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 4);
+      } else {
+        document.getElementById('currentApiKey').textContent = '未设置';
+      }
+    }
+
+    // 清除配置
+    function clearConfig() {
+      localStorage.removeItem('claude_api_key');
+      localStorage.removeItem('claude_base_url');
+      localStorage.removeItem('claude_api_path');
+
+      document.getElementById('successMsg').style.display = 'block';
+
+      // 更新显示
+      setTimeout(() => {
+        displayCurrentConfig();
+      }, 500);
+    }
+
+    // 前往 AI 助手
+    function goToAI() {
+      window.location.href = './ai-assistant.html';
+    }
+
+    // 页面加载时显示当前配置
+    displayCurrentConfig();
+  </script>
+</body>
+</html>

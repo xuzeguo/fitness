@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API 路径测试工具</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #3b82f6;
+    }
+    .path-btn {
+      background: #6b7280;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    .path-btn:hover {
+      background: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔍 API 路径测试工具</h1>
+    <p>测试不同的 API 路径，找到正确的配置</p>
+
+    <div class="input-group">
+      <label>Base URL</label>
+      <input type="text" id="baseUrl" value="https://bmai.kun8.vip" placeholder="https://bmai.kun8.vip">
+    </div>
+
+    <div class="input-group">
+      <label>API Key</label>
+      <input type="password" id="apiKey" value="bma_5e849eb942c5ad9af1ec61b2460fccd88a0126fa1ba3c8bcff4832f93d4a4c18" placeholder="your-api-key">
+    </div>
+
+    <div>
+      <strong>测试以下路径：</strong><br>
+      <button class="path-btn" onclick="testPath('/v1/chat/completions')">OpenAI 格式</button>
+      <button class="path-btn" onclick="testPath('/v1/messages')">Claude 官方格式</button>
+      <button class="path-btn" onclick="testPath('/api/v1/chat/completions')">API 前缀</button>
+      <button class="path-btn" onclick="testPath('/v1')">简单路径</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function testPath(path) {
+      const baseUrl = document.getElementById('baseUrl').value.trim();
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const resultDiv = document.getElementById('result');
+
+      if (!baseUrl || !apiKey) {
+        resultDiv.innerHTML = '<div class="result error">请填写 Base URL 和 API Key</div>';
+        return;
+      }
+
+      const endpoint = `${baseUrl}${path}`;
+      resultDiv.innerHTML = `<div class="result info">🔄 测试中...\n\n端点: ${endpoint}</div>`;
+
+      // 判断使用哪种格式
+      const isOpenAI = path.includes('/chat/completions');
+
+      try {
+        let headers, body;
+
+        if (isOpenAI) {
+          // OpenAI 格式
+          headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          };
+          body = JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 100,
+            messages: [
+              { role: 'system', content: '你是一个测试助手' },
+              { role: 'user', content: '请回复：测试成功' }
+            ]
+          });
+        } else {
+          // Claude 格式
+          headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          };
+          body = JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 100,
+            system: '你是一个测试助手',
+            messages: [
+              { role: 'user', content: '请回复：测试成功' }
+            ]
+          });
+        }
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: headers,
+          body: body
+        });
+
+        const contentType = response.headers.get('content-type');
+        const responseText = await response.text();
+
+        let result = `✅ 请求完成\n\n`;
+        result += `状态码: ${response.status} ${response.statusText}\n`;
+        result += `Content-Type: ${contentType}\n\n`;
+
+        if (response.ok) {
+          result += `✅ 成功！这个路径可用\n\n`;
+          result += `响应内容:\n${responseText.substring(0, 500)}`;
+
+          resultDiv.innerHTML = `<div class="result success">${result}</div>`;
+        } else {
+          result += `❌ 失败\n\n`;
+          result += `响应内容:\n${responseText.substring(0, 500)}`;
+
+          resultDiv.innerHTML = `<div class="result error">${result}</div>`;
+        }
+
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 请求失败\n\n错误: ${error.message}\n\n可能原因:\n1. CORS 跨域问题\n2. 网络连接问题\n3. Base URL 不正确</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
