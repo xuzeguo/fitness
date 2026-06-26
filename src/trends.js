@@ -953,7 +953,7 @@ function parseGirthData(csvText) {
     const dd = dateParts[2];
 
     const isoDate = `${year}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
-    const displayDate = `${mm}-${dd}`; // MM-DD格式用于显示
+    const displayDate = `${year}-${mm}-${dd}`; // 完整日期格式用于显示
 
     result.push({
       date: displayDate,
