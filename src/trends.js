@@ -9,6 +9,7 @@ const appState = {
   bodyGoals: null,
   config: null,
   customWeights: null, // 用户自定义的权重
+  girthPoints: [], // 围度数据
 };
 
 let charts;
@@ -787,13 +788,17 @@ function createCharts() {
   const scoreChart = echarts.init(document.getElementById("scoreChart"));
   const weightChart = echarts.init(document.getElementById("weightChart"));
   const bodyFatChart = echarts.init(document.getElementById("bodyFatChart"));
+  const girthUpperChart = echarts.init(document.getElementById("girthUpperChart"));
+  const girthLowerChart = echarts.init(document.getElementById("girthLowerChart"));
   window.addEventListener("resize", () => {
     exerciseChart.resize();
     scoreChart.resize();
     weightChart.resize();
     bodyFatChart.resize();
+    girthUpperChart.resize();
+    girthLowerChart.resize();
   });
-  return { exerciseChart, scoreChart, weightChart, bodyFatChart };
+  return { exerciseChart, scoreChart, weightChart, bodyFatChart, girthUpperChart, girthLowerChart };
 }
 
 function setExerciseOptions(select, exercises) {
@@ -909,6 +914,199 @@ function renderScoreChart(chart, data) {
   });
 }
 
+/** 解析围度CSV数据 */
+function parseGirthData(csvText) {
+  if (!csvText) return [];
+  const lines = csvText.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(",");
+    if (parts.length < 7) continue;
+
+    const dateStr = parts[0].trim();
+    const [mm, dd] = dateStr.split("-");
+    if (!mm || !dd) continue;
+
+    const isoDate = `2026-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+
+    result.push({
+      date: dateStr,
+      isoDate,
+      neck: parseFloat(parts[1]) || null,
+      chest: parseFloat(parts[2]) || null,
+      arm: parseFloat(parts[3]) || null,
+      waist: parseFloat(parts[4]) || null,
+      hip: parseFloat(parts[5]) || null,
+      thigh: parseFloat(parts[6]) || null,
+    });
+  }
+
+  result.sort((a, b) => a.isoDate.localeCompare(b.isoDate));
+  return result;
+}
+
+/** 渲染上半身围度图表 */
+function renderGirthUpperChart(chart, girthPoints) {
+  if (!girthPoints?.length) {
+    chart.clear();
+    return;
+  }
+
+  const dates = girthPoints.map(p => fmtDateLabel(p.isoDate));
+  const neckData = girthPoints.map(p => p.neck);
+  const chestData = girthPoints.map(p => p.chest);
+  const armData = girthPoints.map(p => p.arm);
+
+  chart.setOption({
+    animation: false,
+    grid: { left: 52, right: 18, top: 50, bottom: 62 },
+    tooltip: {
+      trigger: "axis",
+      textStyle: { fontSize: 15 },
+      formatter: (params) => {
+        let result = params[0].axisValue + "<br/>";
+        params.forEach(item => {
+          if (item.value != null) {
+            result += `${item.marker}${item.seriesName}: ${item.value} cm<br/>`;
+          }
+        });
+        return result;
+      }
+    },
+    legend: {
+      data: ['脖子', '胸围', '臂围'],
+      top: 10,
+      textStyle: { fontSize: 14 }
+    },
+    dataZoom: DATA_ZOOM_X,
+    xAxis: {
+      type: "category",
+      data: dates,
+      axisLabel: { rotate: 40, fontSize: 15 }
+    },
+    yAxis: {
+      type: "value",
+      name: "围度 (cm)",
+      nameTextStyle: { fontSize: 15 },
+      axisLabel: { fontSize: 15 },
+    },
+    series: [
+      {
+        name: "脖子",
+        type: "line",
+        data: neckData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#f59e0b",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+      {
+        name: "胸围",
+        type: "line",
+        data: chestData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#3b82f6",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+      {
+        name: "臂围",
+        type: "line",
+        data: armData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#8b5cf6",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+    ],
+  });
+}
+
+/** 渲染核心与下半身围度图表 */
+function renderGirthLowerChart(chart, girthPoints) {
+  if (!girthPoints?.length) {
+    chart.clear();
+    return;
+  }
+
+  const dates = girthPoints.map(p => fmtDateLabel(p.isoDate));
+  const waistData = girthPoints.map(p => p.waist);
+  const hipData = girthPoints.map(p => p.hip);
+  const thighData = girthPoints.map(p => p.thigh);
+
+  chart.setOption({
+    animation: false,
+    grid: { left: 52, right: 18, top: 50, bottom: 62 },
+    tooltip: {
+      trigger: "axis",
+      textStyle: { fontSize: 15 },
+      formatter: (params) => {
+        let result = params[0].axisValue + "<br/>";
+        params.forEach(item => {
+          if (item.value != null) {
+            result += `${item.marker}${item.seriesName}: ${item.value} cm<br/>`;
+          }
+        });
+        return result;
+      }
+    },
+    legend: {
+      data: ['腰围', '臀围', '大腿根部'],
+      top: 10,
+      textStyle: { fontSize: 14 }
+    },
+    dataZoom: DATA_ZOOM_X,
+    xAxis: {
+      type: "category",
+      data: dates,
+      axisLabel: { rotate: 40, fontSize: 15 }
+    },
+    yAxis: {
+      type: "value",
+      name: "围度 (cm)",
+      nameTextStyle: { fontSize: 15 },
+      axisLabel: { fontSize: 15 },
+    },
+    series: [
+      {
+        name: "腰围",
+        type: "line",
+        data: waistData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#dc2626",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+      {
+        name: "臀围",
+        type: "line",
+        data: hipData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#16a34a",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+      {
+        name: "大腿根部",
+        type: "line",
+        data: thighData,
+        symbolSize: 6,
+        lineStyle: { width: 2 },
+        color: "#0891b2",
+        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        labelLayout: { hideOverlap: true },
+      },
+    ],
+  });
+}
+
 function renderMissingHint(container, xs, ys, show) {
   if (!show) {
     container.textContent = "";
@@ -925,6 +1123,7 @@ function renderMissingHint(container, xs, ys, show) {
 function rerenderAll() {
   const data = appState.data;
   const bodyPoints = appState.bodyPoints;
+  const girthPoints = appState.girthPoints;
   if (!data?.items?.length) return;
   const exerciseSelect = document.getElementById("exerciseSelect");
   const metricSelect = document.getElementById("metricSelect");
@@ -938,6 +1137,8 @@ function rerenderAll() {
   renderWeightChart(charts.weightChart, bodyPoints, appState.bodyGoals);
   renderBodyFatChart(charts.bodyFatChart, bodyPoints, appState.bodyGoals);
   renderBodyForecastNote(bodyPoints, appState.bodyGoals);
+  renderGirthUpperChart(charts.girthUpperChart, girthPoints);
+  renderGirthLowerChart(charts.girthLowerChart, girthPoints);
 }
 
 async function loadData() {
@@ -961,6 +1162,19 @@ async function loadData() {
   appState.data = data;
   appState.bodyPoints = parseBodyMetricRows(json?.bodyMetrics);
   appState.bodyGoals = json?.bodyGoals ?? null;
+
+  // 加载围度数据
+  try {
+    const girthRes = await fetch(`${import.meta.env.BASE_URL}girth.csv`, { cache: "no-store" });
+    if (girthRes.ok) {
+      const girthText = await girthRes.text();
+      appState.girthPoints = parseGirthData(girthText);
+    }
+  } catch (error) {
+    console.warn("无法加载围度数据:", error);
+    appState.girthPoints = [];
+  }
+
   setExerciseOptions(document.getElementById("exerciseSelect"), data.exercises);
   rerenderAll();
 }

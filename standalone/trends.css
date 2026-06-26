@@ -1,5 +1,5 @@
 .wrap {
-  max-width: 1100px;
+  max-width: 100%;
   margin: 16px auto;
   padding: 0 16px 36px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
@@ -324,6 +324,8 @@ code {
 
 .ib-trend-scroll {
   overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 /* 趋势核心表 */
@@ -343,6 +345,7 @@ code {
   border-bottom: 2px solid #e2e8f0;
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
 .ib-ctable td {
@@ -446,6 +449,8 @@ code {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   align-items: start;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 @media (max-width: 720px) {
@@ -467,6 +472,9 @@ code {
   color: #374151;
   border-bottom: 2px solid #e2e8f0;
   font-size: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .ib-table tbody td {

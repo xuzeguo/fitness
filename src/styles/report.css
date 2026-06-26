@@ -8,7 +8,7 @@ body {
 }
 
 .wrap-nav {
-  max-width: 820px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 16px 20px 0;
 }
@@ -24,13 +24,13 @@ body {
 }
 
 .md-body {
-  max-width: 820px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 12px 20px 56px;
   background: #fff;
   min-height: 100vh;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
+  border-left: none;
+  border-right: none;
 }
 
 .md-body h1 {
@@ -49,8 +49,6 @@ body {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.88rem;
-  overflow-x: auto;
-  display: block;
 }
 
 .md-body th,
@@ -62,6 +60,22 @@ body {
 
 .md-body th {
   background: #f7f7f7;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.md-body tbody {
+  display: block;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.md-body thead,
+.md-body tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .md-body code {
