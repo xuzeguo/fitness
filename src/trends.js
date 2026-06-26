@@ -973,13 +973,13 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
     return;
   }
 
-  const dates = girthPoints.map(p => fmtDateLabel(p.isoDate));
-  const data = girthPoints.map(p => p[fieldName]);
+  // 使用时间轴格式：[[date, value], ...]
+  const data = girthPoints.map(p => [p.isoDate, p[fieldName]]).filter(([d, v]) => v != null);
 
   // 计算数据范围以优化Y轴显示
-  const validData = data.filter(v => v != null);
-  const minVal = Math.min(...validData);
-  const maxVal = Math.max(...validData);
+  const values = data.map(([d, v]) => v);
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
   const range = maxVal - minVal;
   const yMin = Math.floor(minVal - range * 0.2);
   const yMax = Math.ceil(maxVal + range * 0.2);
@@ -992,17 +992,24 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
       textStyle: { fontSize: 15 },
       formatter: (params) => {
         const item = params[0];
-        if (item.value != null) {
-          return `${item.axisValue}<br/>${item.marker}${displayName}: ${item.value} cm`;
+        if (item.value && item.value[1] != null) {
+          const date = new Date(item.value[0]);
+          const dateStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+          return `${dateStr}<br/>${item.marker}${displayName}: ${item.value[1]} cm`;
         }
-        return item.axisValue;
+        return '';
       }
     },
     dataZoom: DATA_ZOOM_X,
     xAxis: {
-      type: "category",
-      data: dates,
-      axisLabel: { rotate: 40, fontSize: 15 }
+      type: "time",
+      axisLabel: {
+        fontSize: 15,
+        formatter: (value) => {
+          const date = new Date(value);
+          return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+      }
     },
     yAxis: {
       type: "value",
@@ -1021,7 +1028,7 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
         symbolSize: 8,
         lineStyle: { width: 2 },
         color: color,
-        label: lineSeriesLabel((p) => p.value != null ? p.value : ""),
+        label: lineSeriesLabel((p) => p.value && p.value[1] != null ? p.value[1] : ""),
         labelLayout: { hideOverlap: true },
       },
     ],
