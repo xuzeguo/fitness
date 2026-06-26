@@ -944,14 +944,19 @@ function parseGirthData(csvText) {
     const parts = lines[i].split(",");
     if (parts.length < 7) continue;
 
-    const dateStr = parts[0].trim();
-    const [mm, dd] = dateStr.split("-");
-    if (!mm || !dd) continue;
+    const dateStr = parts[0].trim(); // "2026-06-26"
+    const dateParts = dateStr.split("-"); // ["2026", "06", "26"]
+    if (dateParts.length !== 3) continue;
 
-    const isoDate = `2026-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+    const year = dateParts[0];
+    const mm = dateParts[1];
+    const dd = dateParts[2];
+
+    const isoDate = `${year}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+    const displayDate = `${mm}-${dd}`; // MM-DD格式用于显示
 
     result.push({
-      date: dateStr,
+      date: displayDate,
       isoDate,
       neck: parseFloat(parts[1]) || null,
       chest: parseFloat(parts[2]) || null,
@@ -962,6 +967,7 @@ function parseGirthData(csvText) {
     });
   }
 
+  // 按日期从旧到新排序
   result.sort((a, b) => a.isoDate.localeCompare(b.isoDate));
   return result;
 }
