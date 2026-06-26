@@ -976,6 +976,14 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
   const dates = girthPoints.map(p => fmtDateLabel(p.isoDate));
   const data = girthPoints.map(p => p[fieldName]);
 
+  // 计算数据范围以优化Y轴显示
+  const validData = data.filter(v => v != null);
+  const minVal = Math.min(...validData);
+  const maxVal = Math.max(...validData);
+  const range = maxVal - minVal;
+  const yMin = Math.floor(minVal - range * 0.2);
+  const yMax = Math.ceil(maxVal + range * 0.2);
+
   chart.setOption({
     animation: false,
     grid: { left: 52, right: 18, top: 44, bottom: 62 },
@@ -1001,6 +1009,9 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
       name: "围度 (cm)",
       nameTextStyle: { fontSize: 15 },
       axisLabel: { fontSize: 15 },
+      min: yMin,
+      max: yMax,
+      scale: true,
     },
     series: [
       {
