@@ -973,18 +973,23 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
     return;
   }
 
-  // 使用时间轴格式：[[timestamp, value], ...]
-  const data = girthPoints
-    .filter(p => p[fieldName] != null)
-    .map(p => [new Date(p.isoDate).getTime(), p[fieldName]]);
+  // 提取日期和数值
+  const dates = [];
+  const values = [];
 
-  if (data.length === 0) {
+  for (const p of girthPoints) {
+    if (p[fieldName] != null) {
+      dates.push(p.date); // 使用原始的 MM-DD 格式
+      values.push(p[fieldName]);
+    }
+  }
+
+  if (values.length === 0) {
     chart.clear();
     return;
   }
 
   // 计算数据范围以优化Y轴显示
-  const values = data.map(([d, v]) => v);
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
   const range = maxVal - minVal;
@@ -999,12 +1004,10 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
       textStyle: { fontSize: 15 },
       formatter: (params) => {
         const item = params[0];
-        if (item.value && item.value[1] != null) {
-          const date = new Date(item.value[0]);
-          const dateStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-          return `${dateStr}<br/>${item.marker}${displayName}: ${item.value[1]} cm`;
+        if (item.value != null) {
+          return `${item.axisValue}<br/>${item.marker}${displayName}: ${item.value} cm`;
         }
-        return '';
+        return item.axisValue;
       }
     },
     dataZoom: [
@@ -1026,13 +1029,11 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
       },
     ],
     xAxis: {
-      type: "time",
+      type: "category",
+      data: dates,
       axisLabel: {
-        fontSize: 15,
-        formatter: (value) => {
-          const date = new Date(value);
-          return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-        }
+        rotate: 45,
+        fontSize: 13
       }
     },
     yAxis: {
@@ -1048,7 +1049,7 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
       {
         name: displayName,
         type: "line",
-        data: data,
+        data: values,
         symbolSize: 8,
         lineStyle: { width: 2 },
         color: color,
@@ -1058,7 +1059,7 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
           distance: 4,
           fontSize: 12,
           color: '#444',
-          formatter: (p) => p.value && p.value[1] != null ? p.value[1] : ""
+          formatter: (p) => p.value != null ? p.value : ""
         },
         labelLayout: { hideOverlap: true },
       },
