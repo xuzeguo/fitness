@@ -973,8 +973,15 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
     return;
   }
 
-  // 使用时间轴格式：[[date, value], ...]
-  const data = girthPoints.map(p => [p.isoDate, p[fieldName]]).filter(([d, v]) => v != null);
+  // 使用时间轴格式：[[timestamp, value], ...]
+  const data = girthPoints
+    .filter(p => p[fieldName] != null)
+    .map(p => [new Date(p.isoDate).getTime(), p[fieldName]]);
+
+  if (data.length === 0) {
+    chart.clear();
+    return;
+  }
 
   // 计算数据范围以优化Y轴显示
   const values = data.map(([d, v]) => v);
@@ -1000,7 +1007,24 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
         return '';
       }
     },
-    dataZoom: DATA_ZOOM_X,
+    dataZoom: [
+      {
+        type: "slider",
+        xAxisIndex: 0,
+        start: 0,
+        end: 100,
+        height: 22,
+        bottom: 10,
+        fillerColor: "rgba(37, 99, 235, 0.12)",
+        borderColor: "#e5e7eb",
+      },
+      {
+        type: "inside",
+        xAxisIndex: 0,
+        moveOnMouseMove: true,
+        zoomOnMouseWheel: true
+      },
+    ],
     xAxis: {
       type: "time",
       axisLabel: {
@@ -1028,7 +1052,14 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
         symbolSize: 8,
         lineStyle: { width: 2 },
         color: color,
-        label: lineSeriesLabel((p) => p.value && p.value[1] != null ? p.value[1] : ""),
+        label: {
+          show: true,
+          position: 'top',
+          distance: 4,
+          fontSize: 12,
+          color: '#444',
+          formatter: (p) => p.value && p.value[1] != null ? p.value[1] : ""
+        },
         labelLayout: { hideOverlap: true },
       },
     ],
