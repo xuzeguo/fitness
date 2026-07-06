@@ -953,7 +953,7 @@ function parseGirthData(csvText) {
     const dd = dateParts[2];
 
     const isoDate = `${year}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
-    const displayDate = `${year}-${mm}-${dd}`; // 完整日期格式用于显示
+    const displayDate = `${mm}-${dd}`; // 紧凑日期格式用于显示（月-日）
 
     result.push({
       date: displayDate,
@@ -985,7 +985,7 @@ function renderSingleGirthChart(chart, girthPoints, fieldName, displayName, colo
 
   for (const p of girthPoints) {
     if (p[fieldName] != null) {
-      dates.push(p.date); // 使用原始的 MM-DD 格式
+      dates.push(p.date); // MM-DD 格式
       values.push(p[fieldName]);
     }
   }
