@@ -1291,3 +1291,55 @@ if (document.readyState === "loading") {
   init();
 }
 
+// 监听暗色模式切换，重新渲染所有图表
+window.addEventListener('storage', (e) => {
+  if (e.key === 'fitness-theme' && charts) {
+    // 销毁所有图表
+    Object.values(charts).forEach(chart => chart.dispose());
+    // 重新创建图表
+    charts = createCharts();
+    // 重新渲染数据
+    if (appState.data) {
+      const ex = document.getElementById('exerciseSelect').value;
+      const metric = document.getElementById('metricSelect').value;
+      renderExerciseChart(charts.exerciseChart, appState.data, ex, metric);
+      renderScoreChart(charts.scoreChart, appState.data);
+      renderBodyChart(charts.weightChart, "体重", "kg");
+      renderBodyChart(charts.bodyFatChart, "体脂率", "%");
+      renderGirthChart(charts.girthNeckChart, "脖子", "cm");
+      renderGirthChart(charts.girthChestChart, "胸围", "cm");
+      renderGirthChart(charts.girthArmChart, "臂围", "cm");
+      renderGirthChart(charts.girthWaistChart, "腰围", "cm");
+      renderGirthChart(charts.girthHipChart, "臀围", "cm");
+      renderGirthChart(charts.girthThighChart, "大腿根部", "cm");
+    }
+  }
+});
+
+// 监听同页面主题切换
+const themeObserver = new MutationObserver(() => {
+  if (charts) {
+    Object.values(charts).forEach(chart => chart.dispose());
+    charts = createCharts();
+    if (appState.data) {
+      const ex = document.getElementById('exerciseSelect').value;
+      const metric = document.getElementById('metricSelect').value;
+      renderExerciseChart(charts.exerciseChart, appState.data, ex, metric);
+      renderScoreChart(charts.scoreChart, appState.data);
+      renderBodyChart(charts.weightChart, "体重", "kg");
+      renderBodyChart(charts.bodyFatChart, "体脂率", "%");
+      renderGirthChart(charts.girthNeckChart, "脖子", "cm");
+      renderGirthChart(charts.girthChestChart, "胸围", "cm");
+      renderGirthChart(charts.girthArmChart, "臂围", "cm");
+      renderGirthChart(charts.girthWaistChart, "腰围", "cm");
+      renderGirthChart(charts.girthHipChart, "臀围", "cm");
+      renderGirthChart(charts.girthThighChart, "大腿根部", "cm");
+    }
+  }
+});
+
+themeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ['data-theme']
+});
+
