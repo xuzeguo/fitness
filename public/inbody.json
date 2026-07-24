@@ -174,5 +174,59 @@
       "smi": 8.6,
       "waistHipRatio": 0.92
     }
+  },
+  {
+    "date": "2026-07-24",
+    "note": "体脂率突破22%，骨骼肌量达35.4kg新高",
+    "body": {
+      "weight": 80.7,
+      "bmi": 26.4,
+      "bodyFatPct": 22.0,
+      "leanMass": 62.9,
+      "skeletalMuscleMass": 35.4,
+      "bodyFatMass": 17.8
+    },
+    "composition": {
+      "intracellularWater": 28.7,
+      "extracellularWater": 17.6,
+      "totalBodyWater": 46.3,
+      "protein": 12.4,
+      "mineral": 4.16
+    },
+    "ecwRatio": 0.381,
+    "segmental": {
+      "muscle": {
+        "rightArm": 3.59,
+        "leftArm": 3.61,
+        "trunk": 27.7,
+        "rightLeg": 9.84,
+        "leftLeg": 9.64
+      },
+      "fat": {
+        "rightArm": 1.0,
+        "leftArm": 1.0,
+        "trunk": 9.5,
+        "rightLeg": 2.5,
+        "leftLeg": 2.5
+      }
+    },
+    "metabolism": {
+      "bmr": 1730,
+      "recommendedCalories": 2330
+    },
+    "visceralFatArea": 79.2,
+    "inbodyScore": 79,
+    "bodyControl": {
+      "targetWeight": 74.1,
+      "weightControl": -6.6,
+      "fatControl": -6.6,
+      "muscleControl": 0.0
+    },
+    "additional": {
+      "bodyCellMass": 41.1,
+      "smi": 8.7,
+      "waistHipRatio": 0.89,
+      "phaseAngle": 5.8
+    }
   }
 ]
