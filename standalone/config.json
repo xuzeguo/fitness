@@ -200,5 +200,17 @@
       "max": 20,
       "description": "训练组数合理范围"
     }
+  },
+  "bodyGoals": {
+    "weightKg": {
+      "min": 75,
+      "max": 78,
+      "target": 75
+    },
+    "bodyFatPercent": {
+      "min": 15,
+      "max": 18,
+      "target": 16
+    }
   }
 }
