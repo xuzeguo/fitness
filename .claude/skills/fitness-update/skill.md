@@ -44,6 +44,8 @@ tags: [fitness, data-entry]
 2. 添加新记录（自动填充日期为今天，或使用你指定的日期）
 3. 更新相应的 CSV/JSON 文件（同时更新 public 和 standalone）
 4. 运行 `node scripts/rebuild-training-log-md.mjs` 重新生成 data.json 和 training-log.md
+5. **自动更新 `public/report.md` 页面**（供 http://localhost:5175/report.html 展示的临床参考报告）
+6. **自动调用 `/weight-loss-report` 生成最新的减重进度分析报告**
 
 ## 注意事项
 
